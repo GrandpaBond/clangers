@@ -15,20 +15,21 @@ function prepareVoices(){
 
 }
 
-class Utterance {
+class Utteranc {
 //properties
     name: string = "";
     start: string = "";
     middle: string = "";
     end: string = "";
-
-    utter(freq0: number, freq1: number, freq2: number, freq3: number,
-        vol0: number, vol0: number, vol0: number, vol0: number,
-        dur
-        // insert 
-
+    freqFactor: number[4];
+    volFactor: number[4];
+    timeFactor: number[3];
+//methods 
+    utterUsing(freq,vol,ms){
+        
     }
 
+    }
 
 
 }
