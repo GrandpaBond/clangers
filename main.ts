@@ -15,7 +15,7 @@ function prepareVoices(){
 
 }
 
-class Utteranc {
+class Utterance {
 //properties
     name: string = "";
     start: string = "";
@@ -33,8 +33,13 @@ class Utteranc {
 
 
 }
+let laugh = new Utterance();
+let snore = new Utterance();
+let uhOh = laugh
+
+
 // utterances
-function emitLaugh(pitch: number, ms: number) {
+let mitLaugh(pitch: number, ms: number) {
     music.play(music.createSoundExpression(WaveShape.Sawtooth, 0.7 * pitch, pitch,
         100, 255, 0.9 * ms, SoundExpressionEffect.None,
         InterpolationCurve.Logarithmic), music.PlaybackMode.UntilDone)
