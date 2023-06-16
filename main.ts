@@ -17,29 +17,89 @@ function prepareVoices(){
 
 class Utterance {
 //properties
-    name: string = "";
-    start: string = "";
-    middle: string = "";
-    end: string = "";
-    freqFactor: number[4];
-    volFactor: number[4];
-    timeFactor: number[3];
+    type: VoxType;
+    partA: SoundExpression;
+    partB: SoundExpression;
+    partC: SoundExpression;
+    freqFactor0: number;
+    freqFactor1: number;
+    freqFactor2: number;
+    freqFactor3: number;
+    volFactor0: number;
+    volFactor1: number;
+    volFactor2: number;
+    volFactor3: number;
+    timeFactor1: number;
+    timeFactor2: number;
+    timeFactor3: number;
+
+    // initally base all three parts on freq=333Hz, vol=222, ms = 999 (333 each)
+    constructor(vox: VoxType, freq0: number, vol0: number,
+        waveA: WaveShape, fxA: SoundExpressionEffect, shapeA: InterpolationCurve,
+        freq1: number, vol1: number, ms1: number,
+        waveB: WaveShape, fxB: SoundExpressionEffect, shapeB: InterpolationCurve,
+        freq2: number, vol2: number, ms2: number,
+        waveC: WaveShape, fxC: SoundExpressionEffect, shapeC: InterpolationCurve,
+        freq3: number, vol3: number, ms3: number){
+
+        this.freqFactor0=freq0;
+        this.freqFactor1 = freq1;
+        this.freqFactor2 = freq2;
+        this.freqFactor3 = freq3;
+        this.volFactor0 = vol0;
+        this.volFactor1 = vol1;
+        this.volFactor2 = vol2;
+        this.volFactor3 = vol3;
+        this.timeFactor1 = ms1;
+        this.timeFactor2 = ms2;
+        this.timeFactor3 = ms3;
+
+        this.partA = music.createSoundExpression(waveA, freq0 * 333, freq1 * 333,
+            vol0 * 222, vol1 * 222, ms1 * 999, fxA, shapeA)
+
+        this.partB = music.createSoundExpression(waveB, freq1 * 333, freq2 * 333,
+            vol1 * 222, vol2 * 222, ms2 * 999, fxB, shapeB)
+
+        this.partA = music.createSoundExpression(waveC, freq2 * 333, freq3 * 333,
+            vol2 * 222, vol3 * 222, ms3 * 999, fxC, shapeC)
+    }
 //methods 
-    utterUsing(freq,vol,ms){
+    utterUsing(freq: number, vol: number, ms: number){
+        // adjust frequencies
+        // adjust volumes
+        // adjust durations
         
     }
 
-    }
+
 
 
 }
-let laugh = new Utterance();
-let snore = new Utterance();
-let uhOh = laugh
+
 
 
 // utterances
-let mitLaugh(pitch: number, ms: number) {
+let moan = new Utterance(VoxType.MOAN, 1.30, 150,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
+    1.00, 250, 0.60,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
+    0.95, 200, 0.30,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear,
+    1.15, 133, 0.10);
+
+function emitWaah(pitch: number, ms: number) {
+    music.play(music.createSoundExpression(WaveShape.Sawtooth, pitch, 1.4 * pitch,
+        27, 255, 0.2 * ms, SoundExpressionEffect.None,
+        InterpolationCurve.Curve), music.PlaybackMode.UntilDone)
+    music.play(music.createSoundExpression(WaveShape.Sawtooth, 1.4 * pitch, 1.1 * pitch,
+        255, 50, 0.7 * ms, SoundExpressionEffect.None,
+        InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
+    music.play(music.createSoundExpression(WaveShape.Sawtooth, 1.1 * pitch, 0.3 * pitch,
+        50, 10, 0.1 * ms, SoundExpressionEffect.None,
+        InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
+}
+
+function emitLaugh(pitch: number, ms: number){
     music.play(music.createSoundExpression(WaveShape.Sawtooth, 0.7 * pitch, pitch,
         100, 255, 0.9 * ms, SoundExpressionEffect.None,
         InterpolationCurve.Logarithmic), music.PlaybackMode.UntilDone)
@@ -79,17 +139,6 @@ function emitTweet(pitch: number, ms: number) {
     music.play(music.createSoundExpression(WaveShape.Sine, 0.8 * pitch, pitch,
         120, 200, 0.9 * ms, SoundExpressionEffect.None,
         InterpolationCurve.Logarithmic), music.PlaybackMode.UntilDone)
-}
-function emitWaah(pitch: number, ms: number) {
-    music.play(music.createSoundExpression(WaveShape.Sawtooth, pitch, 1.4 * pitch,
-        27, 255, 0.2 * ms, SoundExpressionEffect.None,
-        InterpolationCurve.Curve), music.PlaybackMode.UntilDone)
-    music.play(music.createSoundExpression(WaveShape.Sawtooth, 1.4 * pitch, 1.1 * pitch,
-        255, 50, 0.7 * ms, SoundExpressionEffect.None,
-        InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
-    music.play(music.createSoundExpression(WaveShape.Sawtooth, 1.1 * pitch, 0.3 * pitch,
-        50, 10, 0.1 * ms, SoundExpressionEffect.None,
-        InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
 }
 function emitGrowl(pitch: number, ms: number) {
     music.play(music.createSoundExpression(WaveShape.Sawtooth, 0.3 * pitch, pitch,
