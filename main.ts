@@ -11,9 +11,9 @@ enum VoxType {
     WAAH = 9,
     GROWL = 10
 }
-function prepareVoices(){
+const volPos = 1
 
-}
+
 
 class Utterance {
 //properties
@@ -66,10 +66,27 @@ class Utterance {
 //methods 
     utterUsing(freq: number, vol: number, ms: number){
         // adjust frequencies
+        
+        }
+
         // adjust volumes
         // adjust durations
         
+    protected setValue(offset: number, value: number, length: number) {
+        value = Math.constrain(value | 0, 0, Math.pow(10, length) - 1);
+        this.src = this.src.substr(0, offset) + formatNumber(value, length) + this.src.substr(offset + length);
     }
+
+    protected getValue(offset: number, length: number) {
+        return parseInt(this.src.substr(offset, length));
+    }
+}
+
+function formatNumber(num: number, length: number) {
+    let result = num + "";
+    while (result.length < length) result = "0" + result;
+    return result;
+}   }
 
 
 
