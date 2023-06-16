@@ -103,6 +103,50 @@ let moan = new Utterance(VoxType.MOAN, 1.30, 150,
     0.95, 200, 0.30,
     WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear,
     1.15, 133, 0.10);
+/*
+Vox	F0 % V0 % WaveA	FxA	PathA	F1 % V1 % T1 % WaveB	FxB	PathB	F2 % V2 % T2 % WaveC	FxC	PathC	F3 % V3 % T3 %
+    TWEET	80	120	SIN	NONE	LOG	100	200							90
+LAUGH	70	100	
+SAW	NONE	LOG	100	250	10	
+SQU	NONE	LIN	70	180	90
+
+SNORE -3508	25
+NOI	VIB	LIN -715	250	50	
+NOI	VIB	LIN - 5000	10	50
+
+DOO	300	200	
+SAW	NONE	LOG	100	220	95	
+SQU	NONE	LIN	100	180	5
+
+QUERY	110	50	
+SQU	NONE	LIN	100	250	70	
+SQU	NONE	CUR	150	50	20
+
+UHOH	110	100	
+SAW	NONE	LOG	140	250	20
+NON					25	
+SQU	NONE	LIN	100	180	55
+
+MOAN	130	150	TRI	
+NONE	CUR	100	250	60	
+TRI	NONE	CUR	95	200	30	
+TRI	NONE	LIN	115	133	10
+
+DUH	100	150	
+SQU	NONE	LIN	95	200	30	
+SQU	NONE	LIN	110	250	10	
+SQU	NONE	LIN	66	90	60
+
+WAAH	100	25	
+SAW	NONE	CUR	140	250	70	
+SAW	NONE	LIN	110	50	20	
+SAW	NONE	LIN	30	10	10
+
+GROWL	30	120	
+SAW	NONE	LOG	100	200	60	
+SAW	NONE	LIN	90	250	15	
+SAW	NONE	LIN	30	180	15
+*/
 
 function emitWaah(pitch: number, ms: number) {
     music.play(music.createSoundExpression(WaveShape.Sawtooth, pitch, 1.4 * pitch,
