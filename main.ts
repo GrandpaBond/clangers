@@ -37,56 +37,83 @@ class Utterance {
     constructor(vox: VoxType, freq0: number, vol0: number,
         waveA: WaveShape, fxA: SoundExpressionEffect, shapeA: InterpolationCurve,
         freq1: number, vol1: number, ms1: number,
-        waveB: WaveShape, fxB: SoundExpressionEffect, shapeB: InterpolationCurve,
+        waveB: WaveShape, fxB: SoundExpressionEffect, shapeB: InterpolationCurve,  // (optional part B)
         freq2: number, vol2: number, ms2: number,
-        waveC: WaveShape, fxC: SoundExpressionEffect, shapeC: InterpolationCurve,
-        freq3: number, vol3: number, ms3: number){
+        waveC: WaveShape, fxC: SoundExpressionEffect, shapeC: InterpolationCurve,  // (optional part C)
+        freq3: number, vol3: number, ms3: number) {
 
-        this.freqFactor0=freq0;
-        this.freqFactor1 = freq1;
-        this.freqFactor2 = freq2;
-        this.freqFactor3 = freq3;
+        this.freqFactor0 = freq0;
         this.volFactor0 = vol0;
+        this.freqFactor1 = freq1;
         this.volFactor1 = vol1;
-        this.volFactor2 = vol2;
-        this.volFactor3 = vol3;
         this.timeFactor1 = ms1;
-        this.timeFactor2 = ms2;
-        this.timeFactor3 = ms3;
-
         this.partA = music.createSoundExpression(waveA, freq0 * 333, freq1 * 333,
             vol0 * 222, vol1 * 222, ms1 * 999, fxA, shapeA)
 
-        this.partB = music.createSoundExpression(waveB, freq1 * 333, freq2 * 333,
-            vol1 * 222, vol2 * 222, ms2 * 999, fxB, shapeB)
+        if (waveB === undefined) {    // only partA was needed
+            this.partB = "unused";
+            this.partC = "unused";
+        } else {
+            // we have a PartB...
+            this.freqFactor2 = freq2;
+            this.volFactor2 = vol2;
+            this.timeFactor2 = ms2;
+            this.partB = music.createSoundExpression(waveB, freq1 * 333, freq2 * 333,
+                vol1 * 222, vol2 * 222, ms2 * 999, fxB, shapeB)
 
-        this.partA = music.createSoundExpression(waveC, freq2 * 333, freq3 * 333,
-            vol2 * 222, vol3 * 222, ms3 * 999, fxC, shapeC)
-    }
-//methods 
-    utterUsing(freq: number, vol: number, ms: number){
-        // adjust frequencies
-        
+            if (waveC === undefined) {    // only partA & partB needed
+                this.partC = "unused";
+            } else {
+            // we have a PartC as well...
+
+                this.freqFactor3 = freq3;
+                this.volFactor3 = vol3;
+                this.timeFactor3 = ms3;
+                this.partA = music.createSoundExpression(waveC, freq2 * 333, freq3 * 333,
+                    vol2 * 222, vol3 * 222, ms3 * 999, fxC, shapeC)
+            }
         }
-
-        // adjust volumes
-        // adjust durations
-        
-    protected setValue(offset: number, value: number, length: number) {
-        value = Math.constrain(value | 0, 0, Math.pow(10, length) - 1);
-        this.src = this.src.substr(0, offset) + formatNumber(value, length) + this.src.substr(offset + length);
     }
 
-    protected getValue(offset: number, length: number) {
-        return parseInt(this.src.substr(offset, length));
+    // methods... 
+    utterUsing(freq: number, vol: number, ms: number) {
+        // adjust PartA frequencies
+        // adjust PartA volumes
+        // adjust PartA duration
+        if (this, partB !== "unused") {
+            // adjust PartB frequencies
+            // adjust PartB volumes
+            // adjust PartB duration
+            if (this, partC !== "unused") {
+                // adjust PartC frequencies
+                // adjust PartC volumes
+                // adjust PartC duration
+            }
+        }
+        music.play(this.partA, music.PlaybackMode.UntilDone);
+        if (this, partB !== "unused") {
+            music.play(this.partB, music.PlaybackMode.UntilDone);
+            if (this, partC !== "unused") {
+                music.play(this.partC, music.PlaybackMode.UntilDone);
+
+            }
+        }
+    }
+
+// internal tools...
+    protected overwriteDigits(offset: number, digits: string, length: number) {
+        this.src = this.src.substr(0, offset) + digits + this.src.substr(offset + length);
+    }
+
+value = Math.constrain(value | 0, 0, Math.pow(10, length) - 1);
+formatNumber(value, length)
+
+    protected formatNumber(num: number, length: number) {
+        let result = num + "";
+        while (result.length < length) result = "0" + result;
+        return result;
     }
 }
-
-function formatNumber(num: number, length: number) {
-    let result = num + "";
-    while (result.length < length) result = "0" + result;
-    return result;
-}   }
 
 
 
@@ -103,49 +130,131 @@ let moan = new Utterance(VoxType.MOAN, 1.30, 150,
     0.95, 200, 0.30,
     WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear,
     1.15, 133, 0.10);
+
 /*
-Vox	F0 % V0 % WaveA	FxA	PathA	F1 % V1 % T1 % WaveB	FxB	PathB	F2 % V2 % T2 % WaveC	FxC	PathC	F3 % V3 % T3 %
-    TWEET	80	120	SIN	NONE	LOG	100	200							90
+
+TWEET	0.80	1.20	
+SIN	NONE	LOG	1.00, 200, 0.90
+*/
+let tweet = new Utterance(VoxType.TWEET, 0.8, 1.20,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Logarithmice,
+    1.00, 200, 0.90,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
+    0.95, 200, 0.30,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear,
+    1.15, 133, 0.10);
+
 LAUGH	70	100	
 SAW	NONE	LOG	100	250	10	
 SQU	NONE	LIN	70	180	90
+let moan = new Utterance(VoxType.MOAN, 1.30, 150,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
+    1.00, 250, 0.60,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
+    0.95, 200, 0.30,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear,
+    1.15, 133, 0.10);
 
 SNORE -3508	25
 NOI	VIB	LIN -715	250	50	
 NOI	VIB	LIN - 5000	10	50
+let moan = new Utterance(VoxType.MOAN, 1.30, 150,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
+    1.00, 250, 0.60,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
+    0.95, 200, 0.30,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear,
+    1.15, 133, 0.10);
+
 
 DOO	300	200	
 SAW	NONE	LOG	100	220	95	
 SQU	NONE	LIN	100	180	5
+let moan = new Utterance(VoxType.MOAN, 1.30, 150,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
+    1.00, 250, 0.60,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
+    0.95, 200, 0.30,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear,
+    1.15, 133, 0.10);
+
 
 QUERY	110	50	
 SQU	NONE	LIN	100	250	70	
 SQU	NONE	CUR	150	50	20
+let moan = new Utterance(VoxType.MOAN, 1.30, 150,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
+    1.00, 250, 0.60,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
+    0.95, 200, 0.30,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear,
+    1.15, 133, 0.10);
+
 
 UHOH	110	100	
 SAW	NONE	LOG	140	250	20
 NON					25	
 SQU	NONE	LIN	100	180	55
+let moan = new Utterance(VoxType.MOAN, 1.30, 150,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
+    1.00, 250, 0.60,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
+    0.95, 200, 0.30,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear,
+    1.15, 133, 0.10);
+
 
 MOAN	130	150	TRI	
 NONE	CUR	100	250	60	
 TRI	NONE	CUR	95	200	30	
 TRI	NONE	LIN	115	133	10
+let moan = new Utterance(VoxType.MOAN, 1.30, 150,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
+    1.00, 250, 0.60,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
+    0.95, 200, 0.30,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear,
+    1.15, 133, 0.10);
+
 
 DUH	100	150	
 SQU	NONE	LIN	95	200	30	
 SQU	NONE	LIN	110	250	10	
 SQU	NONE	LIN	66	90	60
+let moan = new Utterance(VoxType.MOAN, 1.30, 150,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
+    1.00, 250, 0.60,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
+    0.95, 200, 0.30,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear,
+    1.15, 133, 0.10);
+
 
 WAAH	100	25	
 SAW	NONE	CUR	140	250	70	
 SAW	NONE	LIN	110	50	20	
 SAW	NONE	LIN	30	10	10
+let moan = new Utterance(VoxType.MOAN, 1.30, 150,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
+    1.00, 250, 0.60,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
+    0.95, 200, 0.30,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear,
+    1.15, 133, 0.10);
+
 
 GROWL	30	120	
 SAW	NONE	LOG	100	200	60	
 SAW	NONE	LIN	90	250	15	
 SAW	NONE	LIN	30	180	15
+let moan = new Utterance(VoxType.MOAN, 1.30, 150,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
+    1.00, 250, 0.60,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
+    0.95, 200, 0.30,
+    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear,
+    1.15, 133, 0.10);
+
 */
 
 function emitWaah(pitch: number, ms: number) {
