@@ -36,6 +36,9 @@ class Utterance {
     timeFactor1: number;
     timeFactor2: number;
     timeFactor3: number;
+    usingB: boolean;
+    usingC: boolean;
+
 
     // initally base all three parts on freq=333Hz, vol=222, ms = 999 (333 each)
     constructor(vox: VoxType, freq0: number, vol0: number,
@@ -53,10 +56,14 @@ class Utterance {
         this.timeFactor1 = ms1;
         this.partA = music.createSoundExpression(waveA, freq0 * 333, freq1 * 333,
             vol0 * 222, vol1 * 222, ms1 * 999, fxA, shapeA)
+        // until found otherwise...
+        this.usingB = true;
+        this.usingC = true;
 
         if (waveB === undefined) {    // only partA was needed
-            this.partB = "unused";
-            this.partC = "unused";
+            this.usingB = false;
+            this.usingC = false;
+
         } else {
             // we have a PartB...
             this.freqFactor2 = freq2;
@@ -65,11 +72,10 @@ class Utterance {
             this.partB = music.createSoundExpression(waveB, freq1 * 333, freq2 * 333,
                 vol1 * 222, vol2 * 222, ms2 * 999, fxB, shapeB)
 
-            if (waveC === undefined) {    // only partA & partB needed
-                this.partC = "unused";
+            if (waveC === undefined) {    // only partA & partB were needed
+                this.usingC = false;
             } else {
                 // we have a PartC as well...
-
                 this.freqFactor3 = freq3;
                 this.volFactor3 = vol3;
                 this.timeFactor3 = ms3;
@@ -81,56 +87,53 @@ class Utterance {
 
     // methods... 
     utterUsing(this, freq: number, vol: number, ms: number) {
+        let loudness = vol * 4 // map from [0...255] into range [0...1023]
         // adjust PartA duration, frequencies and volumes 
-        this.partA = assemble(this.partA, durationPos, formatNumber(ms * this.timeFactor1, 4), 4);
-        this.partA = assemble(this.partA, startFreqPos, formatNumber(freq * this.freqFactor0, 4), 4);
-        this.partA = assemble(this.partA, startVolPos, formatNumber(vol * this.volFactor0, 4), 4);
+        this.partA = insert(this.partA, durationPos, formatNumber(ms * this.timeFactor1, 4));
+        this.partA = insert(this.partA, startFreqPos, formatNumber(freq * this.freqFactor0, 4));
+        this.partA = insert(this.partA, startVolPos, formatNumber(loudness * this.volFactor0, 4));
         let nextFreqStr = formatNumber(freq * this.freqFactor1, 4);
-        let nextVolStr = formatNumber(vol * this.volFactor1, 4);
-        this.partA = assemble(this.partA, endFreqPos, nextFreqStr, 4);
-        this.partA = assemble(this.partA, endVolPos, nextVolStr, 4);
+        let nextVolStr = formatNumber(loudness * this.volFactor1, 4);
+        this.partA = insert(this.partA, endFreqPos, nextFreqStr);
+        this.partA = insert(this.partA, endVolPos, nextVolStr);
 
-        if (this, partB !== "unused") {
+        if (this.usingB) {
         // adjust PartB duration, frequencies and volumes
-            this.partB = assemble(this.partB, durationPos, formatNumber(ms * this.timeFactor2, 4), 4);
-            this.partB = assemble(this.partB, startFreqPos, nextFreqStr, 4);
-            this.partB = assemble(this.partB, startVolPos, nextVolStr, 4);
+            this.partB = insert(this.partB, durationPos, formatNumber(ms * this.timeFactor2, 4));
+            this.partB = insert(this.partB, startFreqPos, nextFreqStr);
+            this.partB = insert(this.partB, startVolPos, nextVolStr);
             let nextFreqStr = formatNumber(freq * this.freqFactor2, 4);
-            let nextVolStr = formatNumber(vol * this.volFactor2, 4);
-            this.partB = assemble(this.partB, endFreqPos, nextFreqStr, 4);
-            this.partB = assemble(this.partB, endVolPos, nextVolStr, 4);
+            let nextVolStr = formatNumber(loudness * this.volFactor2, 4);
+            this.partB = insert(this.partB, endFreqPos, nextFreqStr);
+            this.partB = insert(this.partB, endVolPos, nextVolStr);
 
-            if (this, partC !== "unused") {
+            if (this.usingC) {
                 // adjust PartC duration, frequencies and volumes
-                this.partC = assemble(this.partC, durationPos, formatNumber(ms * this.timeFactor3, 4), 4);
-                this.partC = assemble(this.partC, startFreqPos, nextFreqStr, 4);
-                this.partC = assemble(this.partC, startVolPos, nextVolStr, 4);
-                this.partC = assemble(this.partA, endFreqPos, formatNumber(freq * this.freqFactor3, 4), 4);
-                this.partC = assemble(this.partA, endVolPos, formatNumber(vol * this.volFactor3, 4), 4);
+                this.partC = insert(this.partC, durationPos, formatNumber(ms * this.timeFactor3, 4));
+                this.partC = insert(this.partC, startFreqPos, nextFreqStr);
+                this.partC = insert(this.partC, startVolPos, nextVolStr);
+                this.partC = insert(this.partA, endFreqPos, formatNumber(freq * this.freqFactor3, 4));
+                this.partC = insert(this.partA, endVolPos, formatNumber(loudness * this.volFactor3, 4));
             }
         }
         music.play(this.partA, music.PlaybackMode.UntilDone);
-        if (this, partB !== "unused") {
+        if (this.usingB) {
             music.play(this.partB, music.PlaybackMode.UntilDone);
-            if (this, partC !== "unused") {
+            if (this.usingC) {
                 music.play(this.partC, music.PlaybackMode.UntilDone);
 
             }
         }
     }
 
-    // internal tools...
-    assemble(express: string, offset: number, digits: string, length: number): string {
-        return express.substr(0, offset) + digits + express.substr(offset + length);
-    }
-
-    value = Math.constrain(value | 0, 0, Math.pow(10, length) - 1);
-    formatNumber(value, length)
-
+// internal tools...
     protected formatNumber(num: number, length: number) {
-        let result = num + "";
+        let result = Math.constrain(num | 0, 0, Math.pow(10, length) - 1) + "";
         while (result.length < length) result = "0" + result;
         return result;
+    }
+    protected insert(expression: string, offset: number, digits: string): string {
+        return expression.substr(0, offset) + digits + expression.substr(offset + digits.length);
     }
 }
 
@@ -138,106 +141,89 @@ class Utterance {
 
 
 
-// utterances
-let moan = new Utterance(VoxType.MOAN, 1.30, 150,
-    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
-    1.00, 250, 0.60,
-    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
-    0.95, 200, 0.30,
-    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear,
-    1.15, 133, 0.10);
-
-/*
-
-TWEET	0.80	1.20	
-SIN	NONE	LOG	1.00, 200, 0.90
-*/
-let tweet = new Utterance(VoxType.TWEET, 0.8, 1.20,
+// declare our utterances
+let tweet = new Utterance(VoxType.TWEET, 0.8, 120,
     WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Logarithmice,
-    1.00, 200, 0.90,
-    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
-    0.95, 200, 0.30,
-    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear,
-    1.15, 133, 0.10);
-
+    1.00, 200, 1.0);
+/*
 LAUGH	70	100	
 SAW	NONE	LOG	100	250	10	
 SQU	NONE	LIN	70	180	90
-let moan = new Utterance(VoxType.MOAN, 1.30, 150,
-    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
-    1.00, 250, 0.60,
-    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
-    0.95, 200, 0.30,
-    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear,
-    1.15, 133, 0.10);
+*/
+let laugh = new Utterance(VoxType.LAUGH, 0.70, 100,
+    WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic,
+    1.00, 250, 0.1,
+    WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear,
+    0.7, 180, 0.9);
 
-SNORE -3508	25
+/* SNORE -3508	25
 NOI	VIB	LIN -715	250	50	
 NOI	VIB	LIN - 5000	10	50
-let moan = new Utterance(VoxType.MOAN, 1.30, 150,
-    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
-    1.00, 250, 0.60,
-    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
-    0.95, 200, 0.30,
-    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear,
-    1.15, 133, 0.10);
-
-
+*/
+let snore = new Utterance(VoxType.SNORE, 3508, 150,
+    WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear,
+    715, 250, 0.50,
+    WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear,
+    5008, 10, 0.50);
+/*
 DOO	300	200	
 SAW	NONE	LOG	100	220	95	
 SQU	NONE	LIN	100	180	5
-let moan = new Utterance(VoxType.MOAN, 1.30, 150,
-    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
-    1.00, 250, 0.60,
-    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
-    0.95, 200, 0.30,
-    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear,
-    1.15, 133, 0.10);
+*/
+let doo = new Utterance(VoxType.DOO, 3.00, 200,
+    WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic,
+    1.00, 220, 0.95,
+    WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear,
+    1.00, 180, 0.05);
 
-
+/*
 QUERY	110	50	
 SQU	NONE	LIN	100	250	70	
 SQU	NONE	CUR	150	50	20
-let moan = new Utterance(VoxType.MOAN, 1.30, 150,
-    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
-    1.00, 250, 0.60,
-    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
-    0.95, 200, 0.30,
-    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear,
-    1.15, 133, 0.10);
+*/
+let query = new Utterance(VoxType.QUERY, 1.30, 150,
+    WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear,
+    1.00, 250, 0.7,
+    WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Curve,
+    1.50, 50, 0.2);
 
 
+/*
 UHOH	110	100	
 SAW	NONE	LOG	140	250	20
 NON					25	
 SQU	NONE	LIN	100	180	55
-let moan = new Utterance(VoxType.MOAN, 1.30, 150,
-    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
-    1.00, 250, 0.60,
-    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
-    0.95, 200, 0.30,
-    WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear,
-    1.15, 133, 0.10);
+*/
+let uhOh = new Utterance(VoxType.UHOH, 1.30, 150,
+    WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Curve,
+    1.40, 250, 0.2,
+    WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Curve,
+    1.40, 250, 0.2,
+    WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear,
+    1.00, 180, 0.55);
 
-
-MOAN	130	150	TRI	
-NONE	CUR	100	250	60	
+/*
+MOAN	130	150
+TRI	NONE	CUR	100	250	60	
 TRI	NONE	CUR	95	200	30	
 TRI	NONE	LIN	115	133	10
+*/
 let moan = new Utterance(VoxType.MOAN, 1.30, 150,
     WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
-    1.00, 250, 0.60,
+    1.00, 250, 0.6,
     WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
-    0.95, 200, 0.30,
+    0.95, 200, 0.3,
     WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear,
-    1.15, 133, 0.10);
+    1.15, 133, 0.1);
 
+
+/*
 
 DUH	100	150	
 SQU	NONE	LIN	95	200	30	
 SQU	NONE	LIN	110	250	10	
 SQU	NONE	LIN	66	90	60
-let moan = new Utterance(VoxType.MOAN, 1.30, 150,
+let duh = new Utterance(VoxType.DUH, 1.30, 150,
     WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
     1.00, 250, 0.60,
     WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,
