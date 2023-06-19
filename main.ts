@@ -7,11 +7,17 @@ enum VoxType {
     QUERY = 5,
     UHOH = 6,
     MOAN = 7,
-    DUH = 8,
+    DUHoolo = 8,
     WAAH = 9,
     GROWL = 10
 }
-const volPos = 1
+const startVolPos = 1
+const endVolPos=26
+const startFreqPos=5
+const endFreqPos=18
+const durationPos =9
+
+
 
 
 
@@ -76,7 +82,9 @@ class Utterance {
     }
 
     // methods... 
-    utterUsing(freq: number, vol: number, ms: number) {
+    utterUsing(freq: number, vol: number, ms: number)
+        set nextFreqStr = 
+        set nextVolStr = formatNumber(vol*this.volFactor1,4) 
         // adjust PartA frequencies
         // adjust PartA volumes
         // adjust PartA duration
@@ -101,7 +109,7 @@ class Utterance {
     }
 
 // internal tools...
-    protected overwriteDigits(offset: number, digits: string, length: number) {
+    protected putDigits(offset: number, digits: string, length: number) {
         this.src = this.src.substr(0, offset) + digits + this.src.substr(offset + length);
     }
 
@@ -115,7 +123,9 @@ formatNumber(value, length)
     }
 }
 
+function gen99(val:number):string {
 
+}
 
 
 }
