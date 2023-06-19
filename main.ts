@@ -22,9 +22,9 @@ const endFreqPos = 18
 class Utterance {
     //properties
     type: VoxType;
-    partA: SoundExpression;
-    partB: SoundExpression;
-    partC: SoundExpression;
+    partA: soundExpression.Sound;
+    partB: soundExpression.Sound;
+    partC: soundExpression.Sound;
     freqFactor0: number;
     freqFactor1: number;
     freqFactor2: number;
@@ -54,7 +54,8 @@ class Utterance {
         this.freqFactor1 = freq1;
         this.volFactor1 = vol1;
         this.timeFactor1 = ms1;
-        this.partA = music.createSoundExpression(waveA, freq0 * 333, freq1 * 333,
+        this.partA = new soundExpression.Sound;
+        this.partA.src = music.createSoundEffect(waveA, freq0 * 333, freq1 * 333,
             vol0 * 222, vol1 * 222, ms1 * 999, fxA, shapeA)
         // until found otherwise...
         this.usingB = true;
@@ -69,7 +70,7 @@ class Utterance {
             this.freqFactor2 = freq2;
             this.volFactor2 = vol2;
             this.timeFactor2 = ms2;
-            this.partB = music.createSoundExpression(waveB, freq1 * 333, freq2 * 333,
+            this.partB.src = music.createSoundEffect(waveB, freq1 * 333, freq2 * 333,
                 vol1 * 222, vol2 * 222, ms2 * 999, fxB, shapeB)
 
             if (waveC === undefined) {    // only partA & partB were needed
@@ -79,49 +80,48 @@ class Utterance {
                 this.freqFactor3 = freq3;
                 this.volFactor3 = vol3;
                 this.timeFactor3 = ms3;
-                this.partA = music.createSoundExpression(waveC, freq2 * 333, freq3 * 333,
+                this.partA.src = music.createSoundEffect(waveC, freq2 * 333, freq3 * 333,
                     vol2 * 222, vol3 * 222, ms3 * 999, fxC, shapeC)
             }
         }
     }
 
     // methods... 
-    utterUsing(this, freq: number, vol: number, ms: number) {
+    utterUsing(freq: number, vol: number, ms: number) {
         let loudness = vol * 4 // map from [0...255] into range [0...1023]
         // adjust PartA duration, frequencies and volumes 
-        this.partA = insert(this.partA, durationPos, formatNumber(ms * this.timeFactor1, 4));
-        this.partA = insert(this.partA, startFreqPos, formatNumber(freq * this.freqFactor0, 4));
-        this.partA = insert(this.partA, startVolPos, formatNumber(loudness * this.volFactor0, 4));
-        let nextFreqStr = formatNumber(freq * this.freqFactor1, 4);
-        let nextVolStr = formatNumber(loudness * this.volFactor1, 4);
-        this.partA = insert(this.partA, endFreqPos, nextFreqStr);
-        this.partA = insert(this.partA, endVolPos, nextVolStr);
+        this.partA.src = this.insert(this.partA.src, durationPos, this.formatNumber(ms * this.timeFactor1, 4));
+        this.partA.src = this.insert(this.partA.src, startFreqPos, this.formatNumber(freq * this.freqFactor0, 4));
+        this.partA.src = this.insert(this.partA.src, startVolPos, this.formatNumber(loudness * this.volFactor0, 4));
+        let nextFreqStr = this.formatNumber(freq * this.freqFactor1, 4);
+        let nextVolStr = this.formatNumber(loudness * this.volFactor1, 4);
+        this.partA.src = this.insert(this.partA.src, endFreqPos, nextFreqStr);
+        this.partA.src = this.insert(this.partA.src, endVolPos, nextVolStr);
 
         if (this.usingB) {
         // adjust PartB duration, frequencies and volumes
-            this.partB = insert(this.partB, durationPos, formatNumber(ms * this.timeFactor2, 4));
-            this.partB = insert(this.partB, startFreqPos, nextFreqStr);
-            this.partB = insert(this.partB, startVolPos, nextVolStr);
-            let nextFreqStr = formatNumber(freq * this.freqFactor2, 4);
-            let nextVolStr = formatNumber(loudness * this.volFactor2, 4);
-            this.partB = insert(this.partB, endFreqPos, nextFreqStr);
-            this.partB = insert(this.partB, endVolPos, nextVolStr);
+            this.partB.src = this.insert(this.partB.src, durationPos, this.formatNumber(ms * this.timeFactor2, 4));
+            this.partB.src = this.insert(this.partB.src, startFreqPos, nextFreqStr);
+            this.partB.src = this.insert(this.partB.src, startVolPos, nextVolStr);
+            nextFreqStr = this.formatNumber(freq * this.freqFactor2, 4);
+            nextVolStr = this.formatNumber(loudness * this.volFactor2, 4);
+            this.partB.src = this.insert(this.partB.src, endFreqPos, nextFreqStr);
+            this.partB.src = this.insert(this.partB.src, endVolPos, nextVolStr);
 
             if (this.usingC) {
                 // adjust PartC duration, frequencies and volumes
-                this.partC = insert(this.partC, durationPos, formatNumber(ms * this.timeFactor3, 4));
-                this.partC = insert(this.partC, startFreqPos, nextFreqStr);
-                this.partC = insert(this.partC, startVolPos, nextVolStr);
-                this.partC = insert(this.partA, endFreqPos, formatNumber(freq * this.freqFactor3, 4));
-                this.partC = insert(this.partA, endVolPos, formatNumber(loudness * this.volFactor3, 4));
+                this.partC.src = this.insert(this.partC.src, durationPos, this.formatNumber(ms * this.timeFactor3, 4));
+                this.partC.src = this.insert(this.partC.src, startFreqPos, nextFreqStr);
+                this.partC.src = this.insert(this.partC.src, startVolPos, nextVolStr);
+                this.partC.src = this.insert(this.partC.src, endFreqPos, this.formatNumber(freq * this.freqFactor3, 4));
+                this.partC.src = this.insert(this.partC.src, endVolPos, this.formatNumber(loudness * this.volFactor3, 4));
             }
         }
-        music.play(this.partA, music.PlaybackMode.UntilDone);
+        music.playSoundEffect(this.partA.src, SoundExpressionPlayMode.UntilDone);
         if (this.usingB) {
-            music.play(this.partB, music.PlaybackMode.UntilDone);
+            music.playSoundEffect(this.partB.src, SoundExpressionPlayMode.UntilDone);
             if (this.usingC) {
-                music.play(this.partC, music.PlaybackMode.UntilDone);
-
+                music.playSoundEffect(this.partC.src, SoundExpressionPlayMode.UntilDone);
             }
         }
     }
