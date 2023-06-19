@@ -11,18 +11,16 @@ enum VoxType {
     WAAH = 9,
     GROWL = 10
 }
+
+// code this defensively, in case SoundExpression field-locations change in future
 const startVolPos = 1
-const endVolPos=26
-const startFreqPos=5
-const endFreqPos=18
-const durationPos =9
-
-
-
-
+const startFreqPos = 5
+const durationPos = 9
+const endVolPos = 26
+const endFreqPos = 18
 
 class Utterance {
-//properties
+    //properties
     type: VoxType;
     partA: SoundExpression;
     partB: SoundExpression;
@@ -70,7 +68,7 @@ class Utterance {
             if (waveC === undefined) {    // only partA & partB needed
                 this.partC = "unused";
             } else {
-            // we have a PartC as well...
+                // we have a PartC as well...
 
                 this.freqFactor3 = freq3;
                 this.volFactor3 = vol3;
@@ -82,20 +80,33 @@ class Utterance {
     }
 
     // methods... 
-    utterUsing(freq: number, vol: number, ms: number)
-        set nextFreqStr = 
-        set nextVolStr = formatNumber(vol*this.volFactor1,4) 
-        // adjust PartA frequencies
-        // adjust PartA volumes
-        // adjust PartA duration
+    utterUsing(this, freq: number, vol: number, ms: number) {
+        // adjust PartA duration, frequencies and volumes 
+        this.partA = assemble(this.partA, durationPos, formatNumber(ms * this.timeFactor1, 4), 4);
+        this.partA = assemble(this.partA, startFreqPos, formatNumber(freq * this.freqFactor0, 4), 4);
+        this.partA = assemble(this.partA, startVolPos, formatNumber(vol * this.volFactor0, 4), 4);
+        let nextFreqStr = formatNumber(freq * this.freqFactor1, 4);
+        let nextVolStr = formatNumber(vol * this.volFactor1, 4);
+        this.partA = assemble(this.partA, endFreqPos, nextFreqStr, 4);
+        this.partA = assemble(this.partA, endVolPos, nextVolStr, 4);
+
         if (this, partB !== "unused") {
-            // adjust PartB frequencies
-            // adjust PartB volumes
-            // adjust PartB duration
+        // adjust PartB duration, frequencies and volumes
+            this.partB = assemble(this.partB, durationPos, formatNumber(ms * this.timeFactor2, 4), 4);
+            this.partB = assemble(this.partB, startFreqPos, nextFreqStr, 4);
+            this.partB = assemble(this.partB, startVolPos, nextVolStr, 4);
+            let nextFreqStr = formatNumber(freq * this.freqFactor2, 4);
+            let nextVolStr = formatNumber(vol * this.volFactor2, 4);
+            this.partB = assemble(this.partB, endFreqPos, nextFreqStr, 4);
+            this.partB = assemble(this.partB, endVolPos, nextVolStr, 4);
+
             if (this, partC !== "unused") {
-                // adjust PartC frequencies
-                // adjust PartC volumes
-                // adjust PartC duration
+                // adjust PartC duration, frequencies and volumes
+                this.partC = assemble(this.partC, durationPos, formatNumber(ms * this.timeFactor3, 4), 4);
+                this.partC = assemble(this.partC, startFreqPos, nextFreqStr, 4);
+                this.partC = assemble(this.partC, startVolPos, nextVolStr, 4);
+                this.partC = assemble(this.partA, endFreqPos, formatNumber(freq * this.freqFactor3, 4), 4);
+                this.partC = assemble(this.partA, endVolPos, formatNumber(vol * this.volFactor3, 4), 4);
             }
         }
         music.play(this.partA, music.PlaybackMode.UntilDone);
@@ -108,13 +119,13 @@ class Utterance {
         }
     }
 
-// internal tools...
-    protected putDigits(offset: number, digits: string, length: number) {
-        this.src = this.src.substr(0, offset) + digits + this.src.substr(offset + length);
+    // internal tools...
+    assemble(express: string, offset: number, digits: string, length: number): string {
+        return express.substr(0, offset) + digits + express.substr(offset + length);
     }
 
-value = Math.constrain(value | 0, 0, Math.pow(10, length) - 1);
-formatNumber(value, length)
+    value = Math.constrain(value | 0, 0, Math.pow(10, length) - 1);
+    formatNumber(value, length)
 
     protected formatNumber(num: number, length: number) {
         let result = num + "";
@@ -123,12 +134,7 @@ formatNumber(value, length)
     }
 }
 
-function gen99(val:number):string {
 
-}
-
-
-}
 
 
 
