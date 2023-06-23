@@ -78,8 +78,9 @@ class Utterance {
 
 
     // initially base all sounds arbitrarily on freq=333Hz, vol=666, ms=999 (333 each)
-    constructor(vox: UtteranceType, freq0: number, vol0: number,
+    constructor(utter: UtteranceType, freq0: number, vol0: number,
         wave: WaveShape, fx: SoundExpressionEffect, shape: InterpolationCurve, freq1: number, vol1: number, ms1: number) {
+        this.mytype = utter;
         this.freqRatio0 = freq0;
         this.volRatio0 = vol0;
         this.freqRatio1 = freq1;
@@ -154,7 +155,7 @@ class Utterance {
 
         }
 
-        // now for the performance...
+        // now for the actual performance...
         music.playSoundEffect(this.partA.src, SoundExpressionPlayMode.UntilDone);
         if (this.useOfB == PartUse.PLAYED) {
             music.playSoundEffect(this.partB.src, SoundExpressionPlayMode.UntilDone);
@@ -162,7 +163,6 @@ class Utterance {
         if (this.useOfB == PartUse.SILENT) {
             basic.pause(ms * this.timeRatio2)
         }
-
         if (this.useOfC == PartUse.PLAYED) {
             music.playSoundEffect(this.partC.src, SoundExpressionPlayMode.UntilDone);
         }
@@ -182,12 +182,20 @@ class Utterance {
 
 // create a selection of utterances
 /*
+Short-hand definitions are laid out as follows:
+<name>             <%Freq,vol>          at start of PartA
+<PartA wave-style> <%Freq,vol,%time>    at end of PartA & start of PartB
+<PartB wave-style> <%Freq,vol,%time>    at end of PartB & start of PartC
+<PartC wave-style> <%Freq,vol,%time>    at end of PartC
+*/
+/*
 TWEET         80% 120
 SIN NONE LOG 100% 200 90%
 SILENT                10%
 */
 let tweet = new Utterance(UtteranceType.TWEET, 0.8, 120, WaveShape.Sine, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 200, 0.9);
 tweet.silentPartB(0.0, 0, 0.1)
+
 /*
 LAUGH         70% 100
 SAW NONE LOG 100% 255 90%
@@ -195,15 +203,17 @@ SQU NONE LIN  70% 180 10%
 */
 let laugh = new Utterance(UtteranceType.LAUGH, 0.70, 100, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 255, 0.9)
 laugh.usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.7, 180, 0.1);
+
 /*
 SNORE       3508  27
 NOI VIB LIN  715 255 50%
-NOI VIB LIN 5008  10 50%
+NOI VIB LIN 5008  0 50%
 NOTE: The noise-generator is highly sensitive to the chosen frequency-trajectory, and these strange values have been experimentally derived.
-By always invoking Snore.performUsing() with freq = 1, these literal frequencies will get used unchanged!
+By always invoking Snore.performUsing() with freq=1, these literal frequencies will get used verbatim!
 */
 let snore = new Utterance(UtteranceType.SNORE, 3508, 27, WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear, 715, 255, 0.50)
-snore.usePartB(WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear, 5008, 10, 0.50);
+snore.usePartB(WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear, 5008, 0, 0.50);
+
 /*
 DOO          300% 200
 SAW NONE LOG 100% 220  5%
@@ -219,7 +229,6 @@ SQU NONE CUR 150%  50 80%
 */
 let query = new Utterance(UtteranceType.QUERY, 1.10, 50, WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 255, 0.2)
 query.usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.50, 50, 0.8);
-
 
 /*
 UHOH         110% 100
@@ -278,16 +287,20 @@ function hum(repeat: number, strength: number, duration: number) {
     quiet = false
     ave = duration / repeat
     pitch = randint(200, 350)
+    let skip = true
     for (let index = 0; index < repeat; index++) {
         span = randint(0.2 * ave, 1.8 * ave)
-        if (span > 0.6 * ave) {
+        if ((span > 0.6 * ave ) || (skip)) {
             // mostly "Dum"...
             doo.performUsing(randint(150, 300), strength, span)
+            basic.pause(100)
+            skip = false
         } else {
             // .. with occasional short, higher-pitched "Di"
-            doo.performUsing(randint(350, 500), strength, 0.15 * ave)
+            doo.performUsing(randint(350, 500), strength, 0.25 * ave)
+            basic.pause(50)
+            skip = true
         }
-        basic.pause(100)
     }
     quiet = true
 }
@@ -298,10 +311,10 @@ function grumble(repeat: number, strength: number, duration: number) {
     basic.showIcon(IconNames.Sad)
     for (let index = 0; index < repeat; index++) {
         span = randint(0.4 * ave, 1.8 * ave)
-        if (span > 0.7 * ave) {
+        if (span > 0.5 * ave) {
             duh.performUsing(randint(150, 300), strength,  0.5*span)
         } else {
-            uhOh.performUsing(randint(100, 300), strength, 1.3*span)
+            uhOh.performUsing(randint(100, 200), strength, 2*span)
         }
         pause(0.5*span)
     }
@@ -332,6 +345,19 @@ function whistle(repeat: number, strength: number, duration: number) {
     quiet = true
 }
 
+function sleep(repeat: number, strength: number, duration: number) {
+    quiet = false
+    ave = duration / repeat
+    for (let index = 0; index < repeat; index++) {
+        span = randint(0.9 * ave, 1.1 * ave)
+        snore.performUsing(1, 80, 0.3*span);
+        pause(300);
+        snore.performUsing(1, 150, 0.7*span);
+        pause(500);
+    }
+    quiet = true
+}
+
 function whimper(repeat: number, strength: number, duration: number) {
     if (quiet) {
         quiet = false
@@ -343,16 +369,16 @@ function whimper(repeat: number, strength: number, duration: number) {
         quiet = true
     }
 }
-function cry(repeat: number, strength: number, period: number) {
+function cry(repeat: number, strength: number, duration: number) {
     if (quiet) {
         quiet = false
-        ave = period / repeat
+        ave = duration / repeat
         for (let index = 0; index < repeat; index++) {
             span = randint(0.4 * ave, 1.8 * ave)
-            if (span > 0.7 * ave) {
-                moan.performUsing(randint(200, 350), strength, 0.5 * span)
+            if (span > 0.6 * ave) {
+                moan.performUsing(randint(200, 350), 1.5 *strength, 0.5 * span)
             } else {
-                waah.performUsing(randint(250, 400), strength, 1.3 * span)
+                waah.performUsing(randint(250, 400), 0.1*strength, 1.3 * span)
             }
             basic.pause(300)
         }
@@ -360,6 +386,17 @@ function cry(repeat: number, strength: number, period: number) {
     }
 }
 
+function abuse(repeat: number, strength: number, duration: number) {
+    if (quiet) {
+        quiet = false
+        ave = duration / repeat
+        for (let index = 0; index < repeat; index++) {
+            growl.performUsing(randint(250, 400), strength, randint(0.4 * ave, 1.8 * ave))
+            basic.pause(200)
+        }
+        quiet = true
+    }
+}
 input.onButtonPressed(Button.A, function () {
     if (quiet) {
         whistle(15, 200, 3000)
@@ -379,10 +416,19 @@ input.onPinPressed(TouchPin.P1, function () {
     }
 })
 
+/*input.onPinPressed(TouchPin.P0, function () {
+    if (quiet) {
+        cry(10, 100, 10000);
+    }
+})
+*/
+
 input.onPinPressed(TouchPin.P2, function () {
     if (quiet) {
         for (let index = 0; index < 6; index++) {
-            snore.performUsing(1,150,1000);
+            snore.performUsing(1,80,700);
+            pause(300);
+            snore.performUsing(1, 150, 1000);
             pause(500);
         }
     }
@@ -394,9 +440,15 @@ input.onGesture(Gesture.Shake, function () {
     }
 })
 
+input.onGesture(Gesture.ScreenDown, function () {
+    if (quiet) {
+        cry(10, 100, 10000);
+    }
+})
+
 input.onLogoEvent(TouchButtonEvent.Pressed, function () {
     if (quiet) {
-        growl.performUsing(300, 250, 500);
+        abuse(10, 100, 5000);
     }
 })
 
