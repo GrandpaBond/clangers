@@ -18,7 +18,7 @@ performance (or saving a wide range of 3*72-character strings we prepared earlie
 Instead we choose to selectively overwrite certain 4-digit fields within our three-part 
 utterance to "tune" its pitch and volume as we require.
 
-*** It is acknowledged that this is a dangerous practice that relies on the internal
+*** It is acknowledged that this is a DANGEROUS PRACTICE that relies on the internal
 *** representation not changing, but it is believed that the performance gains justify it!
 
 */
@@ -45,9 +45,15 @@ const durationPos = 9
 const endVolPos = 26
 const endFreqPos = 18
 
+enum PartUse {
+    UNUSED = 0,
+    PLAYED = 1,
+    SILENT = 2
+}
+
 class Utterance {
     // properties
-    mytype: UtteranceType; 
+    mytype: UtteranceType;
     partA: soundExpression.Sound;
     partB: soundExpression.Sound;
     partC: soundExpression.Sound;
@@ -67,8 +73,8 @@ class Utterance {
     timeRatio1: number;
     timeRatio2: number;
     timeRatio3: number;
-    usingB: boolean;
-    usingC: boolean;
+    useOfB: PartUse;
+    useOfC: PartUse;
 
 
     // initially base all sounds arbitrarily on freq=333Hz, vol=666, ms=999 (333 each)
@@ -82,12 +88,12 @@ class Utterance {
         this.partA = new soundExpression.Sound;
         this.partA.src = music.createSoundEffect(wave, 333, 333, 666, 666, 999, fx, shape);
         // until found otherwise...
-        this.usingB = false;
-        this.usingC = false;
+        this.useOfB = PartUse.UNUSED;
+        this.useOfC = PartUse.UNUSED;
     }
- 
+
     // methods...  
-    
+
     // (adds an optional part B)
     usePartB(wave: WaveShape, fx: SoundExpressionEffect, shape: InterpolationCurve, freq2: number, vol2: number, ms2: number) {
         // we have a PartB...
@@ -96,7 +102,15 @@ class Utterance {
         this.timeRatio2 = ms2;
         this.partB = new soundExpression.Sound;
         this.partB.src = music.createSoundEffect(wave, 333, 333, 666, 666, 999, fx, shape);
-        this.usingB = true
+        this.useOfB = PartUse.PLAYED
+    }
+
+    // (adds a silent Part B but also sets start values for Part C)
+    silentPartB(freq2: number, vol2: number, ms2: number) {
+        this.freqRatio2 = freq2;
+        this.volRatio2 = vol2;
+        this.timeRatio2 = ms2;
+        this.useOfB = PartUse.SILENT
     }
     // (adds an optional part C)
     usePartC(wave: WaveShape, fx: SoundExpressionEffect, shape: InterpolationCurve, freq3: number, vol3: number, ms3: number) {
@@ -106,9 +120,8 @@ class Utterance {
         this.timeRatio3 = ms3;
         this.partC = new soundExpression.Sound;
         this.partC.src = music.createSoundEffect(wave, 333, 333, 666, 666, 999, fx, shape);
-        this.usingC = true
+        this.useOfC = PartUse.PLAYED
     }
-
 
     performUsing(freq: number, vol: number, ms: number) {
         let loudness = vol * 4 // map from [0...255] into range [0...1023]
@@ -121,8 +134,8 @@ class Utterance {
         this.partA.src = this.insert(this.partA.src, endFreqPos, nextFreqStr);
         this.partA.src = this.insert(this.partA.src, endVolPos, nextVolStr);
 
-        if (this.usingB) {
-        // adjust PartB duration, frequencies and volumes
+        if (this.useOfB == PartUse.PLAYED) {
+            // adjust PartB duration, frequencies and volumes
             this.partB.src = this.insert(this.partB.src, durationPos, this.formatNumber(ms * this.timeRatio2, 4));
             this.partB.src = this.insert(this.partB.src, startFreqPos, nextFreqStr);
             this.partB.src = this.insert(this.partB.src, startVolPos, nextVolStr);
@@ -130,26 +143,33 @@ class Utterance {
             nextVolStr = this.formatNumber(loudness * this.volRatio2, 4);
             this.partB.src = this.insert(this.partB.src, endFreqPos, nextFreqStr);
             this.partB.src = this.insert(this.partB.src, endVolPos, nextVolStr);
+        }
+        if (this.useOfC == PartUse.PLAYED) {
+            // adjust PartC duration, frequencies and volumes
+            this.partC.src = this.insert(this.partC.src, durationPos, this.formatNumber(ms * this.timeRatio3, 4));
+            this.partC.src = this.insert(this.partC.src, startFreqPos, nextFreqStr);
+            this.partC.src = this.insert(this.partC.src, startVolPos, nextVolStr);
+            this.partC.src = this.insert(this.partC.src, endFreqPos, this.formatNumber(freq * this.freqRatio3, 4));
+            this.partC.src = this.insert(this.partC.src, endVolPos, this.formatNumber(loudness * this.volRatio3, 4));
 
-            if (this.usingC) {
-                // adjust PartC duration, frequencies and volumes
-                this.partC.src = this.insert(this.partC.src, durationPos, this.formatNumber(ms * this.timeRatio3, 4));
-                this.partC.src = this.insert(this.partC.src, startFreqPos, nextFreqStr);
-                this.partC.src = this.insert(this.partC.src, startVolPos, nextVolStr);
-                this.partC.src = this.insert(this.partC.src, endFreqPos, this.formatNumber(freq * this.freqRatio3, 4));
-                this.partC.src = this.insert(this.partC.src, endVolPos, this.formatNumber(loudness * this.volRatio3, 4));
-            }
         }
+
+        // now for the performance...
         music.playSoundEffect(this.partA.src, SoundExpressionPlayMode.UntilDone);
-        if (this.usingB) {
+        if (this.useOfB == PartUse.PLAYED) {
             music.playSoundEffect(this.partB.src, SoundExpressionPlayMode.UntilDone);
-            if (this.usingC) {
-                music.playSoundEffect(this.partC.src, SoundExpressionPlayMode.UntilDone);
-            }
         }
+        if (this.useOfB == PartUse.SILENT) {
+            basic.pause(ms * this.timeRatio2)
+        }
+
+        if (this.useOfC == PartUse.PLAYED) {
+            music.playSoundEffect(this.partC.src, SoundExpressionPlayMode.UntilDone);
+        }
+
     }
 
-// internal tools...
+    // internal tools...
     protected formatNumber(num: number, length: number) {
         let result = Math.constrain(num | 0, 0, Math.pow(10, length) - 1) + "";
         while (result.length < length) result = "0" + result;
@@ -160,260 +180,229 @@ class Utterance {
     }
 }
 
-// declare our utterances
+// create a selection of utterances
 /*
-// ...stops abruptly
-function emitTweet(pitch: number, ms: number) {
-    music.play(music.createSoundExpression(WaveShape.Sine, 0.8 * pitch, pitch,
-        120, 200, 0.9 * ms, SoundExpressionEffect.None,
-        InterpolationCurve.Logarithmic), music.PlaybackMode.UntilDone)
-}
+TWEET         80% 120
+SIN NONE LOG 100% 200 90%
+SILENT                10%
 */
-let tweet = new Utterance(UtteranceType.TWEET, 0.8, 120,WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Logarithmic,1.00, 200, 1.0);
+let tweet = new Utterance(UtteranceType.TWEET, 0.8, 120, WaveShape.Sine, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 200, 0.9);
+tweet.silentPartB(0.0, 0, 0.1)
 /*
-LAUGH	70	100	
-SAW	NONE	LOG	100	250	10	
-SQU	NONE	LIN	70	180	90
-function emitLaugh(pitch: number, ms: number){
-    music.play(music.createSoundExpression(WaveShape.Sawtooth, 0.7 * pitch, pitch,
-        100, 255, 0.9 * ms, SoundExpressionEffect.None,
-        InterpolationCurve.Logarithmic), music.PlaybackMode.UntilDone)
-    music.play(music.createSoundExpression(WaveShape.Square, pitch, 0.7 * pitch,
-        255, 180, 0.1 * ms, SoundExpressionEffect.None,
-        InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
-
-}
-
+LAUGH         70% 100
+SAW NONE LOG 100% 255 90%
+SQU NONE LIN  70% 180 10%
 */
-let laugh = new Utterance(UtteranceType.LAUGH, 0.70, 100,WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic,1.00, 250, 0.1)
-    laugh.usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.7, 180, 0.9);
-
-/* SNORE -3508	25
-NOI	VIB	LIN -715	250	50	
-NOI	VIB	LIN - 5000	10	50
-function emitSnore(ms: number) {
-    basic.showIcon(IconNames.Asleep)
-    music.play(music.createSoundExpression(WaveShape.Noise, 3508, 715,
-        27, 255, 0.5 * ms, SoundExpressionEffect.Vibrato,
-        InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
-    music.play(music.createSoundExpression(WaveShape.Noise, 847, 5000,
-        255, 10, 0.5 * ms, SoundExpressionEffect.Vibrato,
-        InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
-}
-*/
-let snore = new Utterance(UtteranceType.SNORE, 3508, 150,WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear,715, 250, 0.50)
-snore.usePartB(WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear,5008, 10, 0.50);
+let laugh = new Utterance(UtteranceType.LAUGH, 0.70, 100, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 255, 0.9)
+laugh.usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.7, 180, 0.1);
 /*
-DOO	300	200	
-SAW	NONE	LOG	100	220	95	
-SQU	NONE	LIN	100	180	5
-function emitDoo(pitch: number, ms: number) {
-    music.play(music.createSoundExpression(WaveShape.Sawtooth, 3 * pitch, pitch,
-        200, 220, 0.05 * ms, SoundExpressionEffect.None,
-        InterpolationCurve.Logarithmic), music.PlaybackMode.UntilDone)
-    music.play(music.createSoundExpression(WaveShape.Square, pitch, pitch,
-        220, 180, 0.95 * ms, SoundExpressionEffect.None,
-        InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
-}
-
+SNORE       3508  27
+NOI VIB LIN  715 255 50%
+NOI VIB LIN 5008  10 50%
+NOTE: The noise-generator is highly sensitive to the chosen frequency-trajectory, and these strange values have been experimentally derived.
+By always invoking Snore.performUsing() with freq = 1, these literal frequencies will get used unchanged!
 */
-let doo = new Utterance(UtteranceType.DOO, 3.00, 200,WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic,1.00, 220, 0.95)
-doo.usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear,1.00, 180, 0.05);
+let snore = new Utterance(UtteranceType.SNORE, 3508, 27, WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear, 715, 255, 0.50)
+snore.usePartB(WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear, 5008, 10, 0.50);
+/*
+DOO          300% 200
+SAW NONE LOG 100% 220  5%
+SQU NONE LIN 100% 180 95%
+*/
+let doo = new Utterance(UtteranceType.DOO, 3.00, 200, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 220, 0.05)
+doo.usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 180, 0.95);
 
 /*
-QUERY	110	50	
-SQU	NONE	LIN	100	250	70	
-SQU	NONE	CUR	150	50	20
+QUERY        110%  50
+SQU NONE LIN 100% 255 20%
+SQU NONE CUR 150%  50 80%
 */
-let query = new Utterance(UtteranceType.QUERY, 1.30, 150,WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear,1.00, 250, 0.7)
-query.usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Curve,1.50, 50, 0.2);
+let query = new Utterance(UtteranceType.QUERY, 1.10, 50, WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 255, 0.2)
+query.usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.50, 50, 0.8);
 
 
 /*
-UHOH	110	100	
-SAW	NONE	LOG	140	250	20
-NON					25	
-SQU	NONE	LIN	100	180	55
-function emitUhOh(pitch: number, ms: number) {
-    music.play(music.createSoundExpression(WaveShape.Sawtooth, 1.1 * pitch, 1.4 * pitch,
-        100, 255, 0.25 * ms, SoundExpressionEffect.None,
-        InterpolationCurve.Logarithmic), music.PlaybackMode.UntilDone)
-    basic.pause(0.2 * ms)     // glottal-stop
-    music.play(music.createSoundExpression(WaveShape.Square, 1.1 * pitch, pitch,
-        255, 180, 0.55 * ms, SoundExpressionEffect.None,
-        InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
-}
-
+UHOH         110% 100
+SAW NONE LOG 140% 255 25%
+SILENT       110% 255 20%
+SQU NONE LIN 100% 180 55%
 */
-let uhOh = new Utterance(UtteranceType.UHOH, 1.30, 150,WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Curve,1.40, 250, 0.2)
-uhOh.usePartB(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Curve,1.40, 250, 0.2)
-uhOh.usePartC(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear,1.00, 180, 0.55);
+let uhOh = new Utterance(UtteranceType.UHOH, 1.10, 100, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.40, 255, 0.25)
+uhOh.silentPartB(1.10, 255, 0.2)
+uhOh.usePartC(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 180, 0.55);
 
 /*
-MOAN	130	150
-TRI	NONE	CUR	100	250	60	
-TRI	NONE	CUR	95	200	30	
-TRI	NONE	LIN	115	133	10
+MOAN         130% 150
+TRI NONE CUR 100% 250 30%
+TRI NONE CUR  95% 200 60%
+TRI NONE LIN 115% 133 10%
 */
-let moan = new Utterance(UtteranceType.MOAN, 1.30, 150,WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,1.00, 250, 0.6)
-moan.usePartB(WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,0.95, 200, 0.3)
-moan.usePartB(WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear,1.15, 133, 0.1);
-
+let moan = new Utterance(UtteranceType.MOAN, 1.30, 150, WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.00, 250, 0.3)
+moan.usePartB(WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve, 0.95, 200, 0.6)
+moan.usePartC(WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.15, 133, 0.1);
 
 /*
-
-DUH	100	150	
-SQU	NONE	LIN	95	200	30	
-SQU	NONE	LIN	110	250	10	
-SQU	NONE	LIN	66	90	60
+DUH          100% 150
+SQU NONE LIN  95% 200 10%
+SQU NONE LIN 110% 250 30%
+SQU NONE LIN  66%  90 60%
 */
-let duh = new Utterance(UtteranceType.DUH, 1.30, 150,WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,1.00, 250, 0.60)
-duh.usePartB(WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,0.95, 200, 0.30)
-duh.usePartB( WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.15, 133, 0.10);
+let duh = new Utterance(UtteranceType.DUH, 1.00, 150, WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.95, 200, 0.1)
+duh.usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.10, 250, 0.3)
+duh.usePartC(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.66, 90, 0.6);
 
 /*
-WAAH	100	25	
-SAW	NONE	CUR	140	250	70	
-SAW	NONE	LIN	110	50	20	
-SAW	NONE	LIN	30	10	10
-
-function emitWaah(pitch: number, ms: number) {
-    music.play(music.createSoundExpression(WaveShape.Sawtooth, pitch, 1.4 * pitch,
-        27, 255, 0.2 * ms, SoundExpressionEffect.None,
-        InterpolationCurve.Curve), music.PlaybackMode.UntilDone)
-    music.play(music.createSoundExpression(WaveShape.Sawtooth, 1.4 * pitch, 1.1 * pitch,
-        255, 50, 0.7 * ms, SoundExpressionEffect.None,
-        InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
-    music.play(music.createSoundExpression(WaveShape.Sawtooth, 1.1 * pitch, 0.3 * pitch,
-        50, 10, 0.1 * ms, SoundExpressionEffect.None,
-        InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
-}
-
+WAAH         100%  25
+SAW NONE CUR 140% 255 20%
+SAW NONE LIN 110%  50 70%
+SAW NONE LIN  30%  10 10%
 */
-let waah = new Utterance(UtteranceType.MOAN, 1.30, 150,WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,1.00, 250, 0.60)
-waah.usePartB(WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve,0.95, 200, 0.30)
-waah.usePartC(WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear,1.15, 133, 0.10);
-
+let waah = new Utterance(UtteranceType.WAAH, 1.00, 25, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.40, 255, 0.20)
+waah.usePartB(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.10, 50, 0.70)
+waah.usePartC(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.3, 10, 0.10);
 
 /*
-GROWL	30	120	
-SAW	NONE	LOG	100	200	60	
-SAW	NONE	LIN	90	250	15	
-SAW	NONE	LIN	30	180	15
+GROWL         30% 120
+SAW NONE LOG 100% 200 15%
+SAW NONE LIN  90% 255 60%
+SAW NONE LIN  30% 180 15%
 */
-/*
-function emitGrowl(pitch: number, ms: number) {
-    music.play(music.createSoundExpression(WaveShape.Sawtooth, 0.3 * pitch, pitch,
-        120, 200, 0.2 * ms, SoundExpressionEffect.None,
-        InterpolationCurve.Logarithmic), music.PlaybackMode.UntilDone)
-    music.play(music.createSoundExpression(WaveShape.Sawtooth, pitch, 0.95 * pitch,
-        200, 255, 0.6 * ms, SoundExpressionEffect.None,
-        InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
-    music.play(music.createSoundExpression(WaveShape.Sawtooth, 0.95 * pitch, 0.3 * pitch,
-        255, 180, 0.15 * ms, SoundExpressionEffect.None,
-        InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
-}
-*/
-let growl = new Utterance(UtteranceType.MOAN, 1.30, 150, WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.00, 250, 0.60)
-growl.usePartB( WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve, 0.95, 200, 0.30)
-growl.usePartC( WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.15, 133, 0.10);
+let growl = new Utterance(UtteranceType.GROWL, 0.30, 120, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 200, 0.15)
+growl.usePartB(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.90, 255, 0.60)
+growl.usePartC(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.30, 180, 0.15);
 
 
 
 
-function dumDiDum(repeat: number, period: number) {
+function hum(repeat: number, strength: number, duration: number) {
     quiet = false
-    ave = period / repeat
+    ave = duration / repeat
     pitch = randint(200, 350)
     for (let index = 0; index < repeat; index++) {
         span = randint(0.2 * ave, 1.8 * ave)
-        if (span > 0.5 * ave) {
+        if (span > 0.6 * ave) {
             // mostly "Dum"...
-            doo.performUsing(randint(150, 300), 1.0, span)
+            doo.performUsing(randint(150, 300), strength, span)
         } else {
-            // .. with occasional higher-pitched "Di"
-            doo.performUsing(randint(350, 500), 1.0, 0.15 * ave)
+            // .. with occasional short, higher-pitched "Di"
+            doo.performUsing(randint(350, 500), strength, 0.15 * ave)
         }
         basic.pause(100)
     }
     quiet = true
 }
-/*
-function grumble(repeat: number, period: number) {
+
+function grumble(repeat: number, strength: number, duration: number) {
     quiet = false
-    ave = period / repeat
+    ave = duration / repeat
     basic.showIcon(IconNames.Sad)
     for (let index = 0; index < repeat; index++) {
-        span3 = randint(0.4 * ave, 1.8 * ave)
-        emitUhOh(randint(100, 300), span3)
+        span = randint(0.4 * ave, 1.8 * ave)
+        if (span > 0.7 * ave) {
+            duh.performUsing(randint(150, 300), strength,  0.5*span)
+        } else {
+            uhOh.performUsing(randint(100, 300), strength, 1.3*span)
+        }
+        pause(0.5*span)
     }
     quiet = true
 }
-function giggle(repeat: number, period: number) {
+
+function giggle(repeat: number, strength: number, duration: number) {
     quiet = false
-    ave = period / repeat
+    ave = duration / repeat
     pitch = randint(400, 600)
     for (let index = 0; index < repeat; index++) {
-        span2 = randint(0.4 * ave, 1.8 * ave)
-        emitLaugh(pitch, span2)
+        span = randint(0.4 * ave, 1.8 * ave)
+        laugh.performUsing(pitch, strength,  span)
         pitch = 0.9 * pitch
         basic.pause(100)
     }
     quiet = true
 }
-*/
-function whistle(repeat: number, period: number) {
+
+function whistle(repeat: number, strength: number, duration: number) {
     quiet = false
-    ave = period / repeat
+    ave = duration / repeat
     for (let index = 0; index < repeat; index++) {
-        span2 = randint(0.4 * ave, 1.8 * ave)
-        tweet.performUsing(randint(600, 1200), 200, span2)
+        span = randint(0.4 * ave, 1.8 * ave)
+        tweet.performUsing(randint(600, 1200), strength, span)
         basic.pause(100)
     }
     quiet = true
 }
 
+function whimper(repeat: number, strength: number, duration: number) {
+    if (quiet) {
+        quiet = false
+        ave = duration / repeat
+        for (let index = 0; index < repeat; index++) {
+            moan.performUsing(randint(250, 400), strength, randint(0.7 * ave, 1.3 * ave))
+            basic.pause(300)
+        }
+        quiet = true
+    }
+}
+function cry(repeat: number, strength: number, period: number) {
+    if (quiet) {
+        quiet = false
+        ave = period / repeat
+        for (let index = 0; index < repeat; index++) {
+            span = randint(0.4 * ave, 1.8 * ave)
+            if (span > 0.7 * ave) {
+                moan.performUsing(randint(200, 350), strength, 0.5 * span)
+            } else {
+                waah.performUsing(randint(250, 400), strength, 1.3 * span)
+            }
+            basic.pause(300)
+        }
+        quiet = true
+    }
+}
 
 input.onButtonPressed(Button.A, function () {
     if (quiet) {
-        whistle(15, 3000)
+        whistle(15, 200, 3000)
     }
 })
 
 
 input.onButtonPressed(Button.B, function () {
     if (quiet) {
-        dumDiDum(10, 3000)
+        hum(10, 180, 3000)
     }
 })
-/*
+
 input.onPinPressed(TouchPin.P1, function () {
     if (quiet) {
-        grumble(10, 1000)
+        grumble(10, 200, 10000);
     }
 })
+
 input.onPinPressed(TouchPin.P2, function () {
     if (quiet) {
         for (let index = 0; index < 6; index++) {
-            emitSnore(1000)
+            snore.performUsing(1,150,1000);
+            pause(500);
         }
     }
 })
+
 input.onGesture(Gesture.Shake, function () {
     if (quiet) {
-        giggle(7, 800)
+        giggle(7, 250, 800);
     }
 })
+
 input.onLogoEvent(TouchButtonEvent.Pressed, function () {
     if (quiet) {
-        emitGrowl(300, 500)
+        growl.performUsing(300, 250, 500);
     }
-})*/
+})
+
 let quiet = true
 let span = 0
-let span2 = 0
 let pitch = 0
-let span3 = 0
 let ave = 0
 music.setBuiltInSpeakerEnabled(false)
 pins.touchSetMode(TouchTarget.P1, TouchTargetMode.Capacitive)
