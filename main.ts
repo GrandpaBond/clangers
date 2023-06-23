@@ -22,8 +22,10 @@ utterance to "tune" its pitch and volume as we require.
 *** representation not changing, but it is believed that the performance gains justify it!
 
 */
+
 namespace vox {
-    enum UtteranceType {
+    // we have an array of 10 built-in utterances, accesssed by enumerated index
+    enum Vox {
         NONE = 0,
         TWEET = 1,
         LAUGH = 2,
@@ -52,9 +54,10 @@ namespace vox {
         SILENT = 2
     }
 
+    //====================================================================
     class Utterance {
         // properties
-        mytype: UtteranceType;
+        myType: Vox;
         partA: soundExpression.Sound;
         partB: soundExpression.Sound;
         partC: soundExpression.Sound;
@@ -77,11 +80,10 @@ namespace vox {
         useOfB: PartUse;
         useOfC: PartUse;
 
-
-        // initially base all sounds arbitrarily on freq=333Hz, vol=666, ms=999 (333 each)
-        constructor(utter: UtteranceType, freq0: number, vol0: number,
+        // initially create all sounds arbitrarily with freq=333Hz, vol=666, ms=999 (333ms  each)
+        constructor(vox: Vox, freq0: number, vol0: number,
             wave: WaveShape, fx: SoundExpressionEffect, shape: InterpolationCurve, freq1: number, vol1: number, ms1: number) {
-            this.mytype = utter;
+            this.myType = vox
             this.freqRatio0 = freq0;
             this.volRatio0 = vol0;
             this.freqRatio1 = freq1;
@@ -169,7 +171,6 @@ namespace vox {
             }
 
         }
-
         // internal tools...
         protected formatNumber(num: number, length: number) {
             let result = Math.constrain(num | 0, 0, Math.pow(10, length) - 1) + "";
@@ -179,109 +180,120 @@ namespace vox {
         protected insert(expression: string, offset: number, digits: string): string {
             return expression.substr(0, offset) + digits + expression.substr(offset + digits.length);
         }
+
     }
 
-    // create a selection of utterances
-    /*
-    Short-hand definitions are laid out as follows:
-    <name>             <%Freq,vol>          at start of PartA
-    <PartA wave-style> <%Freq,vol,%time>    at end of PartA & start of PartB
-    <PartB wave-style> <%Freq,vol,%time>    at end of PartB & start of PartC
-    <PartC wave-style> <%Freq,vol,%time>    at end of PartC
-    */
-    /*
-    TWEET         80% 120
-    SIN NONE LOG 100% 200 90%
-    SILENT                10%
-    */
-    let tweet = new Utterance(UtteranceType.TWEET, 0.8, 120, WaveShape.Sine, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 200, 0.9);
-    tweet.silentPartB(0.0, 0, 0.1)
+    //====================================================================
+    class VoxArray {
+        utterances: Utterance[]
+        constructor() {
+            this.utterances = new Utterance[10];
 
-    /*
-    LAUGH         70% 100
-    SAW NONE LOG 100% 255 90%
-    SQU NONE LIN  70% 180 10%
-    */
-    let laugh = new Utterance(UtteranceType.LAUGH, 0.70, 100, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 255, 0.9)
-    laugh.usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.7, 180, 0.1);
+            // creates a selection of utterances, pushing them onto the array
+            /*
+            Short-hand definitions are laid out as follows:
+            <name>             <%Freq,vol>          at start of PartA
+            <PartA wave-style> <%Freq,vol,%time>    at end of PartA & start of PartB
+            <PartB wave-style> <%Freq,vol,%time>    at end of PartB & start of PartC
+            <PartC wave-style> <%Freq,vol,%time>    at end of PartC
+            */
+            /*
+            TWEET         80% 120
+            SIN NONE LOG 100% 200 90%
+            SILENT                10%
+            */
+            utterances[Vox.TWEET] = new Utterance(Vox.TWEET, 0.8, 120, WaveShape.Sine, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 200, 0.9);
+            utterances[Vox.TWEET].silentPartB(0.0, 0, 0.1)
 
-    /*
-    SNORE       3508  27
-    NOI VIB LIN  715 255 50%
-    NOI VIB LIN 5008  0 50%
-    NOTE: The noise-generator is highly sensitive to the chosen frequency-trajectory, and these strange values have been experimentally derived.
-    By always invoking Snore.performUsing() with freq=1, these literal frequencies will get used verbatim!
-    */
-    let snore = new Utterance(UtteranceType.SNORE, 3508, 27, WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear, 715, 255, 0.50)
-    snore.usePartB(WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear, 5008, 0, 0.50);
+            /*
+            LAUGH         70% 100
+            SAW NONE LOG 100% 255 90%
+            SQU NONE LIN  70% 180 10%
+            */
+            utterances[Vox.LAUGH] = new Utterance(Vox.LAUGH, 0.70, 100, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 255, 0.9)
+            utterances[Vox.LAUGH].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.7, 180, 0.1);
 
-    /*
-    DOO          300% 200
-    SAW NONE LOG 100% 220  5%
-    SQU NONE LIN 100% 180 95%
-    */
-    let doo = new Utterance(UtteranceType.DOO, 3.00, 200, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 220, 0.05)
-    doo.usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 180, 0.95);
+            /*
+            SNORE       3508  27
+            NOI VIB LIN  715 255 50%
+            NOI VIB LIN 5008  0 50%
+            NOTE: The noise-generator is highly sensitive to the chosen frequency-trajectory, and these strange values have been experimentally derived.
+            By always invoking Snore.performUsing() with freq=1, these literal frequencies will get used verbatim!
+            */
+            utterances[Vox.SNORE] = new Utterance(Vox.SNORE, 3508, 27, WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear, 715, 255, 0.50)
+            utterances[Vox.SNORE].usePartB(WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear, 5008, 0, 0.50);
 
-    /*
-    QUERY        110%  50
-    SQU NONE LIN 100% 255 20%
-    SQU NONE CUR 150%  50 80%
-    */
-    let query = new Utterance(UtteranceType.QUERY, 1.10, 50, WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 255, 0.2)
-    query.usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.50, 50, 0.8);
+            /*
+            DOO          300% 200
+            SAW NONE LOG 100% 220  5%
+            SQU NONE LIN 100% 180 95%
+            */
+            utterances[Vox.DOO] = new Utterance(Vox.DOO, 3.00, 200, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 220, 0.05)
+            utterances[Vox.DOO].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 180, 0.95);
 
-    /*
-    UHOH         110% 100
-    SAW NONE LOG 140% 255 25%
-    SILENT       110% 255 20%
-    SQU NONE LIN 100% 180 55%
-    */
-    let uhOh = new Utterance(UtteranceType.UHOH, 1.10, 100, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.40, 255, 0.25)
-    uhOh.silentPartB(1.10, 255, 0.2)
-    uhOh.usePartC(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 180, 0.55);
+            /*
+            QUERY        110%  50
+            SQU NONE LIN 100% 255 20%
+            SQU NONE CUR 150%  50 80%
+            */
+            utterances[Vox.QUERY] = new Utterance(Vox.QUERY, 1.10, 50, WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 255, 0.2)
+            utterances[Vox.QUERY].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.50, 50, 0.8);
 
-    /*
-    MOAN         130% 150
-    TRI NONE CUR 100% 250 30%
-    TRI NONE CUR  95% 200 60%
-    TRI NONE LIN 115% 133 10%
-    */
-    let moan = new Utterance(UtteranceType.MOAN, 1.30, 150, WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.00, 250, 0.3)
-    moan.usePartB(WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve, 0.95, 200, 0.6)
-    moan.usePartC(WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.15, 133, 0.1);
+            /*
+            UHOH         110% 100
+            SAW NONE LOG 140% 255 25%
+            SILENT       110% 255 20%
+            SQU NONE LIN 100% 180 55%
+            */
+            utterances[Vox.UHOH] = new Utterance(Vox.UHOH, 1.10, 100, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.40, 255, 0.25)
+            utterances[Vox.UHOH].silentPartB(1.10, 255, 0.2)
+            utterances[Vox.UHOH].usePartC(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 180, 0.55);
 
-    /*
-    DUH          100% 150
-    SQU NONE LIN  95% 200 10%
-    SQU NONE LIN 110% 250 30%
-    SQU NONE LIN  66%  90 60%
-    */
-    let duh = new Utterance(UtteranceType.DUH, 1.00, 150, WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.95, 200, 0.1)
-    duh.usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.10, 250, 0.3)
-    duh.usePartC(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.66, 90, 0.6);
+            /*
+            MOAN         130% 150
+            TRI NONE CUR 100% 250 30%
+            TRI NONE CUR  95% 200 60%
+            TRI NONE LIN 115% 133 10%
+            */
+            utterances[Vox.MOAN] = new Utterance(Vox.MOAN, 1.30, 150, WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.00, 250, 0.3)
+            utterances[Vox.MOAN].usePartB(WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve, 0.95, 200, 0.6)
+            utterances[Vox.MOAN].usePartC(WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.15, 133, 0.1);
 
-    /*
-    WAAH         100%  25
-    SAW NONE CUR 140% 255 20%
-    SAW NONE LIN 110%  50 70%
-    SAW NONE LIN  30%  10 10%
-    */
-    let waah = new Utterance(UtteranceType.WAAH, 1.00, 25, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.40, 255, 0.20)
-    waah.usePartB(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.10, 50, 0.70)
-    waah.usePartC(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.3, 10, 0.10);
+            /*
+            DUH          100% 150
+            SQU NONE LIN  95% 200 10%
+            SQU NONE LIN 110% 250 30%
+            SQU NONE LIN  66%  90 60%
+            */
+            utterances[Vox.DUH] = new Utterance(Vox.DUH, 1.00, 150, WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.95, 200, 0.1)
+            utterances[Vox.DUH].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.10, 250, 0.3)
+            utterances[Vox.DUH].usePartC(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.66, 90, 0.6);
 
-    /*
-    GROWL         30% 120
-    SAW NONE LOG 100% 200 15%
-    SAW NONE LIN  90% 255 60%
-    SAW NONE LIN  30% 180 15%
-    */
-    let growl = new Utterance(UtteranceType.GROWL, 0.30, 120, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 200, 0.15)
-    growl.usePartB(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.90, 255, 0.60)
-    growl.usePartC(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.30, 180, 0.15);
+            /*
+            WAAH         100%  25
+            SAW NONE CUR 140% 255 20%
+            SAW NONE LIN 110%  50 70%
+            SAW NONE LIN  30%  10 10%
+            */
+            utterances[Vox.WAAH] = new Utterance(Vox.WAAH, 1.00, 25, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.40, 255, 0.20)
+            utterances[Vox.WAAH].usePartB(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.10, 50, 0.70)
+            utterances[Vox.WAAH].usePartC(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.3, 10, 0.10);
 
+            /*
+            GROWL         30% 120
+            SAW NONE LOG 100% 200 15%
+            SAW NONE LIN  90% 255 60%
+            SAW NONE LIN  30% 180 15%
+            */
+            utterances[Vox.GROWL] = new Utterance(Vox.GROWL, 0.30, 120, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 200, 0.15)
+            utterances[Vox.GROWL].usePartB(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.90, 255, 0.60)
+            utterances[Vox.GROWL].usePartC(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.30, 180, 0.15);
 
+        }
+        
+    export function emit(vox: Vox, pitch: number, strength: number, duration: number) {
+        utterances[vox].performUsing(pitch, strength, duration);
+    }
 
 
     export function hum(repeat: number, strength: number, duration: number) {
@@ -293,12 +305,12 @@ namespace vox {
             span = randint(0.2 * ave, 1.8 * ave)
             if ((span > 0.6 * ave) || (skip)) {
                 // mostly "Dum"...
-                doo.performUsing(randint(150, 300), strength, span)
+                emit(Vox.DOO, randint(150, 300), strength, span)
                 basic.pause(100)
                 skip = false
             } else {
                 // .. with occasional short, higher-pitched "Di"
-                doo.performUsing(randint(350, 500), strength, 0.25 * ave)
+                emit(Vox.DOO, randint(350, 500), strength, 0.25 * ave)
                 basic.pause(50)
                 skip = true
             }
@@ -312,10 +324,10 @@ namespace vox {
         basic.showIcon(IconNames.Sad)
         for (let index = 0; index < repeat; index++) {
             span = randint(0.4 * ave, 1.8 * ave)
-            if (span > 0.5 * ave) {
-                duh.performUsing(randint(150, 300), strength, 0.5 * span)
+            if (span > 1.0 * ave) {
+                emit(Vox.DUH, randint(150, 300), strength, 0.5 * span)
             } else {
-                uhOh.performUsing(randint(100, 200), strength, 2 * span)
+                emit(Vox.UHOH, randint(100, 200), strength, 2 * span)
             }
             pause(0.5 * span)
         }
@@ -328,7 +340,7 @@ namespace vox {
         pitch = randint(400, 600)
         for (let index = 0; index < repeat; index++) {
             span = randint(0.4 * ave, 1.8 * ave)
-            laugh.performUsing(pitch, strength, span)
+            emit(Vox.LAUGH, pitch, strength, span)
             pitch = 0.9 * pitch
             basic.pause(100)
         }
@@ -340,7 +352,7 @@ namespace vox {
         ave = duration / repeat
         for (let index = 0; index < repeat; index++) {
             span = randint(0.4 * ave, 1.8 * ave)
-            tweet.performUsing(randint(600, 1200), strength, span)
+            emit(Vox.TWEET, randint(600, 1200), strength, span)
             basic.pause(100)
         }
         quiet = true
@@ -351,9 +363,9 @@ namespace vox {
         ave = duration / repeat
         for (let index = 0; index < repeat; index++) {
             span = randint(0.9 * ave, 1.1 * ave)
-            snore.performUsing(1, 80, 0.3 * span);
+            emit(Vox.SNORE, 1, 80, 0.3 * span);
             pause(300);
-            snore.performUsing(1, 150, 0.7 * span);
+            emit(Vox.SNORE, 1, 150, 0.7 * span);
             pause(500);
         }
         quiet = true
@@ -364,7 +376,7 @@ namespace vox {
             quiet = false
             ave = duration / repeat
             for (let index = 0; index < repeat; index++) {
-                moan.performUsing(randint(250, 400), strength, randint(0.7 * ave, 1.3 * ave))
+                emit(Vox.MOAN, randint(250, 400), strength, randint(0.7 * ave, 1.3 * ave))
                 basic.pause(300)
             }
             quiet = true
@@ -376,10 +388,10 @@ namespace vox {
             ave = duration / repeat
             for (let index = 0; index < repeat; index++) {
                 span = randint(0.4 * ave, 1.8 * ave)
-                if (span > 0.6 * ave) {
-                    moan.performUsing(randint(200, 350), 1.5 * strength, 0.5 * span)
+                if (span > 0.9 * ave) {
+                    emit(Vox.MOAN, randint(200, 350), 1.5 * strength, 0.5 * span)
                 } else {
-                    waah.performUsing(randint(250, 400), 0.1 * strength, 1.3 * span)
+                    emit(Vox.WAAH, randint(250, 400), 0.1 * strength, 1.3 * span)
                 }
                 basic.pause(300)
             }
@@ -392,14 +404,19 @@ namespace vox {
             quiet = false
             ave = duration / repeat
             for (let index = 0; index < repeat; index++) {
-                growl.performUsing(randint(250, 400), strength, randint(0.4 * ave, 1.8 * ave))
+                emit(Vox.GROWL, randint(250, 400), strength, randint(0.4 * ave, 1.8 * ave))
                 basic.pause(200)
             }
             quiet = true
         }
+
     }
+}
+
 
 }
+
+
 input.onButtonPressed(Button.A, function () {
     if (quiet) {
         vox.whistle(15, 200, 3000)
