@@ -213,7 +213,6 @@ const utterances = [
     SIN NONE LOG 100% 200 90%
     SILENT                10%
     */
-    utterances[Vox.TWEET] = new Utterance(Vox.TWEET);
     utterances[Vox.TWEET].usePartA(0.8, 120, WaveShape.Sine, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 200, 0.9);
     utterances[Vox.TWEET].silentPartB(0.0, 0, 0.1)
 
@@ -222,7 +221,7 @@ const utterances = [
     SAW NONE LOG 100% 255 90%
     SQU NONE LIN  70% 180 10%
     */
-    utterances[Vox.LAUGH] = new Utterance(Vox.LAUGH, 0.70, 100, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 255, 0.9)
+    utterances[Vox.LAUGH].usePartA(0.70, 100, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 255, 0.9)
     utterances[Vox.LAUGH].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.7, 180, 0.1);
 
     /*
@@ -232,7 +231,7 @@ const utterances = [
     NOTE: The noise-generator is highly sensitive to the chosen frequency-trajectory, and these strange values have been experimentally derived.
     By always invoking Snore.performUsing() with freq=1, these literal frequencies will get used verbatim!
     */
-    utterances[Vox.SNORE] = new Utterance(Vox.SNORE, 3508, 27, WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear, 715, 255, 0.50)
+    utterances[Vox.SNORE].usePartA(3508, 27, WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear, 715, 255, 0.50)
     utterances[Vox.SNORE].usePartB(WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear, 5008, 0, 0.50);
 
     /*
@@ -240,7 +239,7 @@ const utterances = [
     SAW NONE LOG 100% 220  5%
     SQU NONE LIN 100% 180 95%
     */
-    utterances[Vox.DOO] = new Utterance(Vox.DOO, 3.00, 200, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 220, 0.05)
+    utterances[Vox.DOO].usePartA(3.00, 200, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 220, 0.05)
     utterances[Vox.DOO].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 180, 0.95);
 
     /*
@@ -248,7 +247,7 @@ const utterances = [
     SQU NONE LIN 100% 255 20%
     SQU NONE CUR 150%  50 80%
     */
-    utterances[Vox.QUERY] = new Utterance(Vox.QUERY, 1.10, 50, WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 255, 0.2)
+    utterances[Vox.QUERY].usePartA(1.10, 50, WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 255, 0.2)
     utterances[Vox.QUERY].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.50, 50, 0.8);
 
     /*
@@ -257,7 +256,7 @@ const utterances = [
     SILENT       110% 255 20%
     SQU NONE LIN 100% 180 55%
     */
-    utterances[Vox.UHOH] = new Utterance(Vox.UHOH, 1.10, 100, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.40, 255, 0.25)
+    utterances[Vox.UHOH].usePartA(1.10, 100, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.40, 255, 0.25)
     utterances[Vox.UHOH].silentPartB(1.10, 255, 0.2)
     utterances[Vox.UHOH].usePartC(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 180, 0.55);
 
@@ -267,7 +266,7 @@ const utterances = [
     TRI NONE CUR  95% 200 60%
     TRI NONE LIN 115% 133 10%
     */
-    utterances[Vox.MOAN] = new Utterance(Vox.MOAN, 1.30, 150, WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.00, 250, 0.3)
+    utterances[Vox.MOAN].usePartA(1.30, 150, WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.00, 250, 0.3)
     utterances[Vox.MOAN].usePartB(WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve, 0.95, 200, 0.6)
     utterances[Vox.MOAN].usePartC(WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.15, 133, 0.1);
 
@@ -277,7 +276,7 @@ const utterances = [
     SQU NONE LIN 110% 250 30%
     SQU NONE LIN  66%  90 60%
     */
-    utterances[Vox.DUH] = new Utterance(Vox.DUH, 1.00, 150, WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.95, 200, 0.1)
+    utterances[Vox.DUH].usePartA(1.00, 150, WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.95, 200, 0.1)
     utterances[Vox.DUH].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.10, 250, 0.3)
     utterances[Vox.DUH].usePartC(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.66, 90, 0.6);
 
@@ -287,7 +286,7 @@ const utterances = [
     SAW NONE LIN 110%  50 70%
     SAW NONE LIN  30%  10 10%
     */
-    utterances[Vox.WAAH] = new Utterance(Vox.WAAH, 1.00, 25, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.40, 255, 0.20)
+    utterances[Vox.WAAH].usePartA(1.00, 25, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.40, 255, 0.20)
     utterances[Vox.WAAH].usePartB(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.10, 50, 0.70)
     utterances[Vox.WAAH].usePartC(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.3, 10, 0.10);
 
@@ -297,7 +296,7 @@ const utterances = [
     SAW NONE LIN  90% 255 60%
     SAW NONE LIN  30% 180 15%
     */
-    utterances[Vox.GROWL] = new Utterance(Vox.GROWL, 0.30, 120, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 200, 0.15)
+    utterances[Vox.GROWL].usePartA(0.30, 120, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 200, 0.15)
     utterances[Vox.GROWL].usePartB(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.90, 255, 0.60)
     utterances[Vox.GROWL].usePartC(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.30, 180, 0.15);
 
@@ -446,7 +445,7 @@ input.onPinPressed(TouchPin.P1, function () {
 
 input.onPinPressed(TouchPin.P2, function () {
     if (quiet) {
-        vox.sleep(20, 150, 10000)
+        vox.sleep(10, 150, 10000)
     }
 })
 
