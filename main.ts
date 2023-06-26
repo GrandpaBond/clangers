@@ -23,10 +23,14 @@ utterance to "tune" its pitch and volume as we require.
 
 */
 
+//% color=#6a8694
+//% icon="\uf141"
+//% block="Vocalisation"
+
+
 namespace vox {
-    // we have an array of 10 built-in utterances, accesssed by enumerated index
+    // we provide an array of 10 built-in utterances, accesssed by enumerated index
     enum Vox {
-        NONE = 0,
         TWEET = 1,
         LAUGH = 2,
         SNORE = 3,
@@ -39,6 +43,17 @@ namespace vox {
         GROWL = 10
     }
 
+    enum PartUse {
+        UNUSED = 0,
+        PLAYED = 1,
+        SILENT = 2
+    }
+    // provide activity events (for other components to synchronise with)
+    const VOX_ACTIVITY_ID = 1234 // TODO: Check this a is permissable value!
+    enum Action {
+        START = 1,
+        FINISH = 2
+    }
 
     // Code this defensively, just in case SoundExpression field-locations should change in future.
     // (We presume their values will always be 0000 to 9999)
@@ -48,12 +63,8 @@ namespace vox {
     const endVolPos = 26
     const endFreqPos = 18
 
-    enum PartUse {
-        UNUSED = 0,
-        PLAYED = 1,
-        SILENT = 2
-    }
-   //====================================================================
+    
+    //====================================================================
     class Utterance {
         // properties
         myType: Vox;
@@ -87,7 +98,7 @@ namespace vox {
             this.useOfA = PartUse.UNUSED;
             this.useOfB = PartUse.UNUSED;
             this.useOfC = PartUse.UNUSED;
-            }
+        }
 
         // methods...  
         // Sets up Part A, implicitly setting start values for Part B
@@ -161,6 +172,7 @@ namespace vox {
             }
 
             // now for the actual performance...
+            control.raiseEvent(VOX_ACTIVITY_ID, Action.START) // ..typically to open mouth
             music.playSoundEffect(this.partA.src, SoundExpressionPlayMode.UntilDone);
             if (this.useOfB == PartUse.PLAYED) {
                 music.playSoundEffect(this.partB.src, SoundExpressionPlayMode.UntilDone);
@@ -171,7 +183,7 @@ namespace vox {
             if (this.useOfC == PartUse.PLAYED) {
                 music.playSoundEffect(this.partC.src, SoundExpressionPlayMode.UntilDone);
             }
-
+            control.raiseEvent(VOX_ACTIVITY_ID, Action.FINISH) // ..typically to close mouth
         }
         // internal tools...
         protected formatNumber(num: number, length: number) {
@@ -187,27 +199,26 @@ namespace vox {
 
 
     // now create a selection of standard utterances
-const utterances = [
-    new Utterance(Vox.NONE),
-    new Utterance(Vox.TWEET),
-    new Utterance(Vox.LAUGH),
-    new Utterance(Vox.SNORE),
-    new Utterance(Vox.DOO),
-    new Utterance(Vox.QUERY),
-    new Utterance(Vox.UHOH),
-    new Utterance(Vox.MOAN),
-    new Utterance(Vox.DUH),
-    new Utterance(Vox.WAAH),
-    new Utterance(Vox.GROWL)
-]
+    const utterances = [
+        new Utterance(Vox.TWEET),
+        new Utterance(Vox.LAUGH),
+        new Utterance(Vox.SNORE),
+        new Utterance(Vox.DOO),
+        new Utterance(Vox.QUERY),
+        new Utterance(Vox.UHOH),
+        new Utterance(Vox.MOAN),
+        new Utterance(Vox.DUH),
+        new Utterance(Vox.WAAH),
+        new Utterance(Vox.GROWL)
+    ]
 
- /*
-    Short-hand definitions are laid out as follows:
-    <name>             <%Freq,vol>          at start of PartA
-    <PartA wave-style> <%Freq,vol,%time>    at end of PartA & start of PartB
-    <PartB wave-style> <%Freq,vol,%time>    at end of PartB & start of PartC
-    <PartC wave-style> <%Freq,vol,%time>    at end of PartC
-    */
+    /*
+       Short-hand definitions are laid out as follows:
+       <name>             <%Freq,vol>          at start of PartA
+       <PartA wave-style> <%Freq,vol,%time>    at end of PartA & start of PartB
+       <PartB wave-style> <%Freq,vol,%time>    at end of PartB & start of PartC
+       <PartC wave-style> <%Freq,vol,%time>    at end of PartC
+       */
     /*
     TWEET         80% 120
     SIN NONE LOG 100% 200 90%
@@ -300,128 +311,126 @@ const utterances = [
     utterances[Vox.GROWL].usePartB(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.90, 255, 0.60)
     utterances[Vox.GROWL].usePartC(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.30, 180, 0.15);
 
-
-
-export function emit(vox: Vox, pitch: number, strength: number, duration: number) {
-    utterances[vox].performUsing(pitch, strength, duration);
-}
-
-
-export function hum(repeat: number, strength: number, duration: number) {
-    quiet = false
-    ave = duration / repeat
-    pitch = randint(200, 350)
-    let skip = true
-    for (let index = 0; index < repeat; index++) {
-        span = randint(0.2 * ave, 1.8 * ave)
-        if ((span > 0.6 * ave) || (skip)) {
-            // mostly "Dum"...
-            emit(Vox.DOO, randint(150, 300), strength, span)
-            basic.pause(100)
-            skip = false
-        } else {
-            // .. with occasional short, higher-pitched "Di"
-            emit(Vox.DOO, randint(350, 500), strength, 0.25 * ave)
-            basic.pause(50)
-            skip = true
-        }
+    export function emit(vox: Vox, pitch: number, strength: number, duration: number) {
+        utterances[vox].performUsing(pitch, strength, duration);
     }
-    quiet = true
-}
 
-export function grumble(repeat: number, strength: number, duration: number) {
-    quiet = false
-    ave = duration / repeat
-    basic.showIcon(IconNames.Sad)
-    for (let index = 0; index < repeat; index++) {
-        span = randint(0.4 * ave, 1.8 * ave)
-        if (span > 1.0 * ave) {
-            emit(Vox.DUH, randint(150, 300), strength, 0.5 * span)
-        } else {
-            emit(Vox.UHOH, randint(100, 200), strength, 2 * span)
-        }
-        pause(0.5 * span)
-    }
-    quiet = true
-}
 
-export function giggle(repeat: number, strength: number, duration: number) {
-    quiet = false
-    ave = duration / repeat
-    pitch = randint(400, 600)
-    for (let index = 0; index < repeat; index++) {
-        span = randint(0.4 * ave, 1.8 * ave)
-        emit(Vox.LAUGH, pitch, strength, span)
-        pitch = 0.9 * pitch
-        basic.pause(100)
-    }
-    quiet = true
-}
-
-export function whistle(repeat: number, strength: number, duration: number) {
-    quiet = false
-    ave = duration / repeat
-    for (let index = 0; index < repeat; index++) {
-        span = randint(0.4 * ave, 1.8 * ave)
-        emit(Vox.TWEET, randint(600, 1200), strength, span)
-        basic.pause(100)
-    }
-    quiet = true
-}
-
-export function sleep(repeat: number, strength: number, duration: number) {
-    quiet = false
-    ave = duration / repeat
-    for (let index = 0; index < repeat; index++) {
-        span = randint(0.9 * ave, 1.1 * ave)
-        emit(Vox.SNORE, 1, 80, 0.3 * span);
-        pause(300);
-        emit(Vox.SNORE, 1, 150, 0.7 * span);
-        pause(500);
-    }
-    quiet = true
-}
-
-export function whimper(repeat: number, strength: number, duration: number) {
-    if (quiet) {
+    export function hum(repeat: number, strength: number, duration: number) {
         quiet = false
         ave = duration / repeat
+        pitch = randint(200, 350)
+        let skip = true
         for (let index = 0; index < repeat; index++) {
-            emit(Vox.MOAN, randint(250, 400), strength, randint(0.7 * ave, 1.3 * ave))
-            basic.pause(300)
+            span = randint(0.2 * ave, 1.8 * ave)
+            if ((span > 0.6 * ave) || (skip)) {
+                // mostly "Dum"...
+                emit(Vox.DOO, randint(150, 300), strength, span)
+                basic.pause(100)
+                skip = false
+            } else {
+                // .. with occasional short, higher-pitched "Di"
+                emit(Vox.DOO, randint(350, 500), strength, 0.25 * ave)
+                basic.pause(50)
+                skip = true
+            }
         }
         quiet = true
     }
-}
-export function cry(repeat: number, strength: number, duration: number) {
-    if (quiet) {
+
+    export function grumble(repeat: number, strength: number, duration: number) {
+        quiet = false
+        ave = duration / repeat
+        basic.showIcon(IconNames.Sad)
+        for (let index = 0; index < repeat; index++) {
+            span = randint(0.4 * ave, 1.8 * ave)
+            if (span > 1.0 * ave) {
+                emit(Vox.DUH, randint(150, 300), strength, 0.5 * span)
+            } else {
+                emit(Vox.UHOH, randint(100, 200), strength, 2 * span)
+            }
+            pause(0.5 * span)
+        }
+        quiet = true
+    }
+
+    export function giggle(repeat: number, strength: number, duration: number) {
+        quiet = false
+        ave = duration / repeat
+        pitch = randint(400, 600)
+        for (let index = 0; index < repeat; index++) {
+            span = randint(0.4 * ave, 1.8 * ave)
+            emit(Vox.LAUGH, pitch, strength, span)
+            pitch = 0.9 * pitch
+            basic.pause(100)
+        }
+        quiet = true
+    }
+
+    export function whistle(repeat: number, strength: number, duration: number) {
         quiet = false
         ave = duration / repeat
         for (let index = 0; index < repeat; index++) {
             span = randint(0.4 * ave, 1.8 * ave)
-            if (span > 0.9 * ave) {
-                emit(Vox.MOAN, randint(200, 350), 1.5 * strength, 0.5 * span)
-            } else {
-                emit(Vox.WAAH, randint(250, 400), 0.1 * strength, 1.3 * span)
-            }
-            basic.pause(300)
+            emit(Vox.TWEET, randint(600, 1200), strength, span)
+            basic.pause(100)
         }
         quiet = true
     }
-}
 
-export function abuse(repeat: number, strength: number, duration: number) {
-    if (quiet) {
+    export function sleep(repeat: number, strength: number, duration: number) {
         quiet = false
         ave = duration / repeat
         for (let index = 0; index < repeat; index++) {
-            emit(Vox.GROWL, randint(250, 400), strength, randint(0.4 * ave, 1.8 * ave))
-            basic.pause(200)
+            span = randint(0.9 * ave, 1.1 * ave)
+            emit(Vox.SNORE, 1, 80, 0.3 * span);
+            pause(300);
+            emit(Vox.SNORE, 1, 150, 0.7 * span);
+            pause(500);
         }
         quiet = true
     }
 
-}
+    export function whimper(repeat: number, strength: number, duration: number) {
+        if (quiet) {
+            quiet = false
+            ave = duration / repeat
+            for (let index = 0; index < repeat; index++) {
+                emit(Vox.MOAN, randint(250, 400), strength, randint(0.7 * ave, 1.3 * ave))
+                basic.pause(300)
+            }
+            quiet = true
+        }
+    }
+    export function cry(repeat: number, strength: number, duration: number) {
+        if (quiet) {
+            quiet = false
+            ave = duration / repeat
+            for (let index = 0; index < repeat; index++) {
+                span = randint(0.4 * ave, 1.8 * ave)
+                if (span > 0.9 * ave) {
+                    emit(Vox.MOAN, randint(200, 350), 1.5 * strength, 0.5 * span)
+                } else {
+                    emit(Vox.WAAH, randint(250, 400), 0.1 * strength, 1.3 * span)
+                }
+                basic.pause(300)
+            }
+            quiet = true
+        }
+    }
+
+    export function abuse(repeat: number, strength: number, duration: number) {
+        if (quiet) {
+            quiet = false
+            ave = duration / repeat
+            for (let index = 0; index < repeat; index++) {
+                emit(Vox.GROWL, randint(250, 400), strength, randint(0.4 * ave, 1.8 * ave))
+                basic.pause(200)
+            }
+            quiet = true
+        }
+
+    }
 }
 
 input.onButtonPressed(Button.A, function () {
@@ -463,7 +472,7 @@ input.onGesture(Gesture.ScreenDown, function () {
 
 input.onLogoEvent(TouchButtonEvent.Pressed, function () {
     if (quiet) {
-        vox.abuse(10, 100, 5000);
+        vox.abuse(10, 200, 5000);
     }
 })
 
