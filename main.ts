@@ -24,7 +24,7 @@ utterance to "tune" its pitch and volume as we require.
 */
 
 //% color=#6a8694
-//% icon="\uf141"
+//% icon="\uf600"
 //% block="Vocalisation"
 
 
@@ -63,7 +63,7 @@ namespace vox {
     const endVolPos = 26
     const endFreqPos = 18
 
-    
+
     //====================================================================
     class Utterance {
         // properties
@@ -172,7 +172,7 @@ namespace vox {
             }
 
             // now for the actual performance...
-            control.raiseEvent(VOX_ACTIVITY_ID, Action.START) // ..typically to open mouth
+            control.raiseEvent(VOX_ACTIVITY_ID, Action.START) // ..typically, to open mouth
             music.playSoundEffect(this.partA.src, SoundExpressionPlayMode.UntilDone);
             if (this.useOfB == PartUse.PLAYED) {
                 music.playSoundEffect(this.partB.src, SoundExpressionPlayMode.UntilDone);
@@ -183,7 +183,7 @@ namespace vox {
             if (this.useOfC == PartUse.PLAYED) {
                 music.playSoundEffect(this.partC.src, SoundExpressionPlayMode.UntilDone);
             }
-            control.raiseEvent(VOX_ACTIVITY_ID, Action.FINISH) // ..typically to close mouth
+            control.raiseEvent(VOX_ACTIVITY_ID, Action.FINISH) // ..typically, to close mouth
         }
         // internal tools...
         protected formatNumber(num: number, length: number) {
@@ -311,11 +311,13 @@ namespace vox {
     utterances[Vox.GROWL].usePartB(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.90, 255, 0.60)
     utterances[Vox.GROWL].usePartC(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.30, 180, 0.15);
 
+
+    //% block="emit|choice $vox at pitch $pitch with strength $strength"
     export function emit(vox: Vox, pitch: number, strength: number, duration: number) {
         utterances[vox].performUsing(pitch, strength, duration);
     }
 
-
+    //% block="hum|$repeat times with strength $strength over $duration ms"
     export function hum(repeat: number, strength: number, duration: number) {
         quiet = false
         ave = duration / repeat
@@ -338,6 +340,7 @@ namespace vox {
         quiet = true
     }
 
+    //% block="grumble|$repeat times with strength $strength over $duration ms"
     export function grumble(repeat: number, strength: number, duration: number) {
         quiet = false
         ave = duration / repeat
@@ -354,6 +357,7 @@ namespace vox {
         quiet = true
     }
 
+    //% block="giggle|$repeat times with strength $strength over $duration ms"
     export function giggle(repeat: number, strength: number, duration: number) {
         quiet = false
         ave = duration / repeat
@@ -367,6 +371,7 @@ namespace vox {
         quiet = true
     }
 
+    //% block="whistle|$repeat times with strength $strength over $duration ms"
     export function whistle(repeat: number, strength: number, duration: number) {
         quiet = false
         ave = duration / repeat
@@ -378,7 +383,8 @@ namespace vox {
         quiet = true
     }
 
-    export function sleep(repeat: number, strength: number, duration: number) {
+    //% block="snore $repeat times with strength $strength over $duration ms"
+    export function snore(repeat: number, strength: number, duration: number) {
         quiet = false
         ave = duration / repeat
         for (let index = 0; index < repeat; index++) {
@@ -391,6 +397,7 @@ namespace vox {
         quiet = true
     }
 
+    //% block="whimper|$repeat times with strength $strength over $duration ms"
     export function whimper(repeat: number, strength: number, duration: number) {
         if (quiet) {
             quiet = false
@@ -402,6 +409,8 @@ namespace vox {
             quiet = true
         }
     }
+
+    //% block="cry|$repeat times with strength $strength over $duration ms"
     export function cry(repeat: number, strength: number, duration: number) {
         if (quiet) {
             quiet = false
@@ -419,7 +428,8 @@ namespace vox {
         }
     }
 
-    export function abuse(repeat: number, strength: number, duration: number) {
+    //% block="shout|$repeat times with strength $strength over $duration ms"
+    export function shout(repeat: number, strength: number, duration: number) {
         if (quiet) {
             quiet = false
             ave = duration / repeat
