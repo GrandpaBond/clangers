@@ -23,24 +23,30 @@ utterance to "tune" its pitch and volume as we require.
 
 */
 
-//% color=#6a8694
-//% icon="\uf600"
-//% block="Vocalisation"
-
-
-namespace vox {
+//% color=33 weight=100 icon="\uf600 block="Utter"
+namespace Vocalise {
     // we provide an array of 10 built-in utterances, accesssed by enumerated index
-    enum Vox {
-        TWEET = 1,
-        LAUGH = 2,
-        SNORE = 3,
-        DOO = 4,
-        QUERY = 5,
-        UHOH = 6,
-        MOAN = 7,
-        DUH = 8,
-        WAAH = 9,
-        GROWL = 10
+    enum VoxType {
+        //% block="Tweet"
+        TWEET,
+        //% block="Laugh"
+        LAUGH,
+        //% block="Snore"
+        SNORE,
+        //% block="Doo"
+        DOO,
+        //% block="Eh?"
+        QUERY,
+        //% block="Uh-oh"
+        UHOH,
+        //% block="Moan"
+        MOAN,
+        //% block="Duh!"
+        DUH,
+        //% block="Waah"
+        WAAH,
+        //% block="Growl"
+        GROWL
     }
 
     enum PartUse {
@@ -49,7 +55,7 @@ namespace vox {
         SILENT = 2
     }
     // provide activity events (for other components to synchronise with)
-    const VOX_ACTIVITY_ID = 1234 // TODO: Check this a is permissable value!
+    const VOCALISE_ACTIVITY_ID = 1234 // TODO: Check this a is permissable value!
     enum Action {
         START = 1,
         FINISH = 2
@@ -67,7 +73,7 @@ namespace vox {
     //====================================================================
     class Utterance {
         // properties
-        myType: Vox;
+        myType: VoxType;
         partA: soundExpression.Sound;
         partB: soundExpression.Sound;
         partC: soundExpression.Sound;
@@ -92,7 +98,7 @@ namespace vox {
         timeRatio3: number;
 
         // initially create all sounds arbitrarily with freq=333Hz, vol=666, ms=999 (333ms  each)
-        constructor(me: Vox) {
+        constructor(me: VoxType) {
             this.myType = me;
             // until otherwise instructed...
             this.useOfA = PartUse.UNUSED;
@@ -172,7 +178,7 @@ namespace vox {
             }
 
             // now for the actual performance...
-            control.raiseEvent(VOX_ACTIVITY_ID, Action.START) // ..typically, to open mouth
+            control.raiseEvent(VOCALISE_ACTIVITY_ID, Action.START) // ..typically, to open mouth
             music.playSoundEffect(this.partA.src, SoundExpressionPlayMode.UntilDone);
             if (this.useOfB == PartUse.PLAYED) {
                 music.playSoundEffect(this.partB.src, SoundExpressionPlayMode.UntilDone);
@@ -183,7 +189,7 @@ namespace vox {
             if (this.useOfC == PartUse.PLAYED) {
                 music.playSoundEffect(this.partC.src, SoundExpressionPlayMode.UntilDone);
             }
-            control.raiseEvent(VOX_ACTIVITY_ID, Action.FINISH) // ..typically, to close mouth
+            control.raiseEvent(VOCALISE_ACTIVITY_ID, Action.FINISH) // ..typically, to close mouth
         }
         // internal tools...
         protected formatNumber(num: number, length: number) {
@@ -200,16 +206,16 @@ namespace vox {
 
     // now create a selection of standard utterances
     const utterances = [
-        new Utterance(Vox.TWEET),
-        new Utterance(Vox.LAUGH),
-        new Utterance(Vox.SNORE),
-        new Utterance(Vox.DOO),
-        new Utterance(Vox.QUERY),
-        new Utterance(Vox.UHOH),
-        new Utterance(Vox.MOAN),
-        new Utterance(Vox.DUH),
-        new Utterance(Vox.WAAH),
-        new Utterance(Vox.GROWL)
+        new Utterance(VoxType.TWEET),
+        new Utterance(VoxType.LAUGH),
+        new Utterance(VoxType.SNORE),
+        new Utterance(VoxType.DOO),
+        new Utterance(VoxType.QUERY),
+        new Utterance(VoxType.UHOH),
+        new Utterance(VoxType.MOAN),
+        new Utterance(VoxType.DUH),
+        new Utterance(VoxType.WAAH),
+        new Utterance(VoxType.GROWL)
     ]
 
     /*
@@ -224,16 +230,16 @@ namespace vox {
     SIN NONE LOG 100% 200 90%
     SILENT                10%
     */
-    utterances[Vox.TWEET].usePartA(0.8, 120, WaveShape.Sine, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 200, 0.9);
-    utterances[Vox.TWEET].silentPartB(0.0, 0, 0.1)
+    utterances[VoxType.TWEET].usePartA(0.8, 120, WaveShape.Sine, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 200, 0.9);
+    utterances[VoxType.TWEET].silentPartB(0.0, 0, 0.1)
 
     /*
     LAUGH         70% 100
     SAW NONE LOG 100% 255 90%
     SQU NONE LIN  70% 180 10%
     */
-    utterances[Vox.LAUGH].usePartA(0.70, 100, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 255, 0.9)
-    utterances[Vox.LAUGH].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.7, 180, 0.1);
+    utterances[VoxType.LAUGH].usePartA(0.70, 100, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 255, 0.9)
+    utterances[VoxType.LAUGH].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.7, 180, 0.1);
 
     /*
     SNORE       3508  27
@@ -242,24 +248,24 @@ namespace vox {
     NOTE: The noise-generator is highly sensitive to the chosen frequency-trajectory, and these strange values have been experimentally derived.
     By always invoking Snore.performUsing() with freq=1, these literal frequencies will get used verbatim!
     */
-    utterances[Vox.SNORE].usePartA(3508, 27, WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear, 715, 255, 0.50)
-    utterances[Vox.SNORE].usePartB(WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear, 5008, 0, 0.50);
+    utterances[VoxType.SNORE].usePartA(3508, 27, WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear, 715, 255, 0.50)
+    utterances[VoxType.SNORE].usePartB(WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear, 5008, 0, 0.50);
 
     /*
     DOO          300% 200
     SAW NONE LOG 100% 220  5%
     SQU NONE LIN 100% 180 95%
     */
-    utterances[Vox.DOO].usePartA(3.00, 200, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 220, 0.05)
-    utterances[Vox.DOO].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 180, 0.95);
+    utterances[VoxType.DOO].usePartA(3.00, 200, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 220, 0.05)
+    utterances[VoxType.DOO].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 180, 0.95);
 
     /*
     QUERY        110%  50
     SQU NONE LIN 100% 255 20%
     SQU NONE CUR 150%  50 80%
     */
-    utterances[Vox.QUERY].usePartA(1.10, 50, WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 255, 0.2)
-    utterances[Vox.QUERY].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.50, 50, 0.8);
+    utterances[VoxType.QUERY].usePartA(1.10, 50, WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 255, 0.2)
+    utterances[VoxType.QUERY].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.50, 50, 0.8);
 
     /*
     UHOH         110% 100
@@ -267,9 +273,9 @@ namespace vox {
     SILENT       110% 255 20%
     SQU NONE LIN 100% 180 55%
     */
-    utterances[Vox.UHOH].usePartA(1.10, 100, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.40, 255, 0.25)
-    utterances[Vox.UHOH].silentPartB(1.10, 255, 0.2)
-    utterances[Vox.UHOH].usePartC(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 180, 0.55);
+    utterances[VoxType.UHOH].usePartA(1.10, 100, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.40, 255, 0.25)
+    utterances[VoxType.UHOH].silentPartB(1.10, 255, 0.2)
+    utterances[VoxType.UHOH].usePartC(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 180, 0.55);
 
     /*
     MOAN         130% 150
@@ -277,9 +283,9 @@ namespace vox {
     TRI NONE CUR  95% 200 60%
     TRI NONE LIN 115% 133 10%
     */
-    utterances[Vox.MOAN].usePartA(1.30, 150, WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.00, 250, 0.3)
-    utterances[Vox.MOAN].usePartB(WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve, 0.95, 200, 0.6)
-    utterances[Vox.MOAN].usePartC(WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.15, 133, 0.1);
+    utterances[VoxType.MOAN].usePartA(1.30, 150, WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.00, 250, 0.3)
+    utterances[VoxType.MOAN].usePartB(WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve, 0.95, 200, 0.6)
+    utterances[VoxType.MOAN].usePartC(WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.15, 133, 0.1);
 
     /*
     DUH          100% 150
@@ -287,9 +293,9 @@ namespace vox {
     SQU NONE LIN 110% 250 30%
     SQU NONE LIN  66%  90 60%
     */
-    utterances[Vox.DUH].usePartA(1.00, 150, WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.95, 200, 0.1)
-    utterances[Vox.DUH].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.10, 250, 0.3)
-    utterances[Vox.DUH].usePartC(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.66, 90, 0.6);
+    utterances[VoxType.DUH].usePartA(1.00, 150, WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.95, 200, 0.1)
+    utterances[VoxType.DUH].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.10, 250, 0.3)
+    utterances[VoxType.DUH].usePartC(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.66, 90, 0.6);
 
     /*
     WAAH         100%  25
@@ -297,9 +303,9 @@ namespace vox {
     SAW NONE LIN 110%  50 70%
     SAW NONE LIN  30%  10 10%
     */
-    utterances[Vox.WAAH].usePartA(1.00, 25, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.40, 255, 0.20)
-    utterances[Vox.WAAH].usePartB(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.10, 50, 0.70)
-    utterances[Vox.WAAH].usePartC(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.3, 10, 0.10);
+    utterances[VoxType.WAAH].usePartA(1.00, 25, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.40, 255, 0.20)
+    utterances[VoxType.WAAH].usePartB(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.10, 50, 0.70)
+    utterances[VoxType.WAAH].usePartC(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.3, 10, 0.10);
 
     /*
     GROWL         30% 120
@@ -307,17 +313,24 @@ namespace vox {
     SAW NONE LIN  90% 255 60%
     SAW NONE LIN  30% 180 15%
     */
-    utterances[Vox.GROWL].usePartA(0.30, 120, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 200, 0.15)
-    utterances[Vox.GROWL].usePartB(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.90, 255, 0.60)
-    utterances[Vox.GROWL].usePartC(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.30, 180, 0.15);
+    utterances[VoxType.GROWL].usePartA(0.30, 120, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 200, 0.15)
+    utterances[VoxType.GROWL].usePartB(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.90, 255, 0.60)
+    utterances[VoxType.GROWL].usePartC(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.30, 180, 0.15);
 
 
-    //% block="emit|choice $vox at pitch $pitch with strength $strength"
-    export function emit(vox: Vox, pitch: number, strength: number, duration: number) {
-        utterances[vox].performUsing(pitch, strength, duration);
+    //% block="emit $utterance at pitch $pitch with strength $strength for $duration ms"
+    //% inlineInputMode=inline   
+    //% pitch.min=100 pitch.max=800 pitch.defl=300
+    //% strength.min=0 strength.max=255 strength.defl=180
+    //% duration.min=50 duration.max=9999 duration.defl=1000
+    export function emit(utterance: VoxType, pitch: number, strength: number, duration: number) {
+        utterances[utterance].performUsing(pitch, strength, duration);
     }
 
-    //% block="hum|$repeat times with strength $strength over $duration ms"
+    //% block="hum || $repeat times with strength $strength over $duration ms"
+    //% repeat.min=1 repeat.max=100 repeat.defl=10
+    //% strength.min=0 strength.max=255 strength.defl=180
+    //% duration.min=1 duration.max= 100 duration.defl=2000
     export function hum(repeat: number, strength: number, duration: number) {
         quiet = false
         ave = duration / repeat
@@ -327,12 +340,12 @@ namespace vox {
             span = randint(0.2 * ave, 1.8 * ave)
             if ((span > 0.6 * ave) || (skip)) {
                 // mostly "Dum"...
-                emit(Vox.DOO, randint(150, 300), strength, span)
+                emit(VoxType.DOO, randint(150, 300), strength, span)
                 basic.pause(100)
                 skip = false
             } else {
                 // .. with occasional short, higher-pitched "Di"
-                emit(Vox.DOO, randint(350, 500), strength, 0.25 * ave)
+                emit(VoxType.DOO, randint(350, 500), strength, 0.25 * ave)
                 basic.pause(50)
                 skip = true
             }
@@ -340,7 +353,10 @@ namespace vox {
         quiet = true
     }
 
-    //% block="grumble|$repeat times with strength $strength over $duration ms"
+    //% block="grumble || $repeat times with strength $strength over $duration ms"
+    //% repeat.min=1 repeat.max=100 repeat.defl=10
+    //% strength.min=0 strength.max=255 strength.defl=180
+    //% duration.min=1 duration.max= 100 duration.defl=2000
     export function grumble(repeat: number, strength: number, duration: number) {
         quiet = false
         ave = duration / repeat
@@ -348,69 +364,84 @@ namespace vox {
         for (let index = 0; index < repeat; index++) {
             span = randint(0.4 * ave, 1.8 * ave)
             if (span > 1.0 * ave) {
-                emit(Vox.DUH, randint(150, 300), strength, 0.5 * span)
+                emit(VoxType.DUH, randint(150, 300), strength, 0.5 * span)
             } else {
-                emit(Vox.UHOH, randint(100, 200), strength, 2 * span)
+                emit(VoxType.UHOH, randint(100, 200), strength, 2 * span)
             }
             pause(0.5 * span)
         }
         quiet = true
     }
 
-    //% block="giggle|$repeat times with strength $strength over $duration ms"
+    //% block="giggle || $repeat times with strength $strength over $duration ms"
+    //% repeat.min=1 repeat.max=100 repeat.defl=10
+    //% strength.min=0 strength.max=255 strength.defl=180
+    //% duration.min=1 duration.max= 100 duration.defl=2000
     export function giggle(repeat: number, strength: number, duration: number) {
         quiet = false
         ave = duration / repeat
         pitch = randint(400, 600)
         for (let index = 0; index < repeat; index++) {
             span = randint(0.4 * ave, 1.8 * ave)
-            emit(Vox.LAUGH, pitch, strength, span)
+            emit(VoxType.LAUGH, pitch, strength, span)
             pitch = 0.9 * pitch
             basic.pause(100)
         }
         quiet = true
     }
 
-    //% block="whistle|$repeat times with strength $strength over $duration ms"
+    //% block="whistle || $repeat times with strength $strength over $duration ms"
+    //% repeat.min=1 repeat.max=100 repeat.defl=10
+    //% strength.min=0 strength.max=255 strength.defl=180
+    //% duration.min=1 duration.max= 100 duration.defl=2000
     export function whistle(repeat: number, strength: number, duration: number) {
         quiet = false
         ave = duration / repeat
         for (let index = 0; index < repeat; index++) {
             span = randint(0.4 * ave, 1.8 * ave)
-            emit(Vox.TWEET, randint(600, 1200), strength, span)
+            emit(VoxType.TWEET, randint(600, 1200), strength, span)
             basic.pause(100)
         }
         quiet = true
     }
 
-    //% block="snore $repeat times with strength $strength over $duration ms"
+    //% block="snore || $repeat times with strength $strength over $duration ms"
+    //% repeat.min=1 repeat.max=100 repeat.defl=10
+    //% strength.min=0 strength.max=255 strength.defl=180
+    //% duration.min=1 duration.max= 100 duration.defl=2000
     export function snore(repeat: number, strength: number, duration: number) {
         quiet = false
         ave = duration / repeat
         for (let index = 0; index < repeat; index++) {
             span = randint(0.9 * ave, 1.1 * ave)
-            emit(Vox.SNORE, 1, 80, 0.3 * span);
+            emit(VoxType.SNORE, 1, 80, 0.3 * span);
             pause(300);
-            emit(Vox.SNORE, 1, 150, 0.7 * span);
+            emit(VoxType.SNORE, 1, 150, 0.7 * span);
             pause(500);
         }
         quiet = true
     }
 
-    //% block="whimper|$repeat times with strength $strength over $duration ms"
+    //% block="whimper || $repeat times with strength $strength over $duration ms"
+    //% repeat.min=1 repeat.max=100 repeat.defl=10
+    //% strength.min=0 strength.max=255 strength.defl=180
+    //% duration.min=1 duration.max= 100 duration.defl=2000
     export function whimper(repeat: number, strength: number, duration: number) {
         if (quiet) {
             quiet = false
             ave = duration / repeat
             for (let index = 0; index < repeat; index++) {
-                emit(Vox.MOAN, randint(250, 400), strength, randint(0.7 * ave, 1.3 * ave))
+                emit(VoxType.MOAN, randint(250, 400), strength, randint(0.7 * ave, 1.3 * ave))
                 basic.pause(300)
             }
             quiet = true
         }
     }
 
-    //% block="cry|$repeat times with strength $strength over $duration ms"
+    //% block="cry || $repeat times with strength $strength over $duration ms"
+    //% repeat.min=1 repeat.max=100 repeat.defl=10
+    //% strength.min=0 strength.max=255 strength.defl=180
+    //% duration.min=1 duration.max= 100 duration.defl=2000
     export function cry(repeat: number, strength: number, duration: number) {
         if (quiet) {
             quiet = false
@@ -418,9 +449,9 @@ namespace vox {
             for (let index = 0; index < repeat; index++) {
                 span = randint(0.4 * ave, 1.8 * ave)
                 if (span > 0.9 * ave) {
-                    emit(Vox.MOAN, randint(200, 350), 1.5 * strength, 0.5 * span)
+                    emit(VoxType.MOAN, randint(200, 350), 1.5 * strength, 0.5 * span)
                 } else {
-                    emit(Vox.WAAH, randint(250, 400), 0.1 * strength, 1.3 * span)
+                    emit(VoxType.WAAH, randint(250, 400), 0.1 * strength, 1.3 * span)
                 }
                 basic.pause(300)
             }
@@ -428,13 +459,17 @@ namespace vox {
         }
     }
 
-    //% block="shout|$repeat times with strength $strength over $duration ms"
+    //% block="shout || $repeat times with strength $strength over $duration ms"
+    //% expandableArgumentMode="toggle"
+    //% repeat.min=1 repeat.max=100 repeat.defl=10
+    //% strength.min=0 strength.max=255 strength.defl=180
+    //% duration.min=1 duration.max= 100 duration.defl=2000
     export function shout(repeat: number, strength: number, duration: number) {
         if (quiet) {
             quiet = false
             ave = duration / repeat
             for (let index = 0; index < repeat; index++) {
-                emit(Vox.GROWL, randint(250, 400), strength, randint(0.4 * ave, 1.8 * ave))
+                emit(VoxType.GROWL, randint(250, 400), strength, randint(0.4 * ave, 1.8 * ave))
                 basic.pause(200)
             }
             quiet = true
@@ -445,44 +480,44 @@ namespace vox {
 
 input.onButtonPressed(Button.A, function () {
     if (quiet) {
-        vox.whistle(15, 200, 3000)
+        Vocalise.whistle(15, 200, 3000)
     }
 })
 
 
 input.onButtonPressed(Button.B, function () {
     if (quiet) {
-        vox.hum(10, 180, 3000)
+        Vocalise.hum(10, 180, 3000)
     }
 })
 
 input.onPinPressed(TouchPin.P1, function () {
     if (quiet) {
-        vox.grumble(10, 200, 10000);
+        Vocalise.grumble(10, 200, 10000);
     }
 })
 
 input.onPinPressed(TouchPin.P2, function () {
     if (quiet) {
-        vox.sleep(10, 150, 10000)
+        Vocalise.snore(10, 150, 10000)
     }
 })
 
 input.onGesture(Gesture.Shake, function () {
     if (quiet) {
-        vox.giggle(7, 250, 800);
+        Vocalise.giggle(7, 250, 800);
     }
 })
 
 input.onGesture(Gesture.ScreenDown, function () {
     if (quiet) {
-        vox.cry(10, 100, 10000);
+        Vocalise.cry(10, 100, 10000);
     }
 })
 
 input.onLogoEvent(TouchButtonEvent.Pressed, function () {
     if (quiet) {
-        vox.abuse(10, 200, 5000);
+        Vocalise.shout(10, 200, 5000);
     }
 })
 
