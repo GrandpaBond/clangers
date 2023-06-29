@@ -1,4 +1,4 @@
-/* UTTERANCES
+/* VOCALISE
 While the built-in facilities for creating sound-effects are impressively flexible,
 they are insufficient to properly express moods and emotions.
 For the Emote extension, we would like to create more complex sounds, that have 
@@ -23,32 +23,33 @@ utterance to "tune" its pitch and volume as we require.
 
 */
 
+// an initial array of 10 built-in utterances will be accesssed by enumerated index
+enum VoxType {
+    //% block="Tweet"
+    TWEET,
+    //% block="Laugh"
+    LAUGH,
+    //% block="Snore"
+    SNORE,
+    //% block="Doo"
+    DOO,
+    //% block="Eh?"
+    QUERY,
+    //% block="Uh-oh"
+    UHOH,
+    //% block="Moan"
+    MOAN,
+    //% block="Duh!"
+    DUH,
+    //% block="Waah"
+    WAAH,
+    //% block="Growl"
+    GROWL
+}
+
+
 //% color=33 weight=100 icon="\uf600 block="Utter"
 namespace Vocalise {
-    // we provide an array of 10 built-in utterances, accesssed by enumerated index
-    enum VoxType {
-        //% block="Tweet"
-        TWEET,
-        //% block="Laugh"
-        LAUGH,
-        //% block="Snore"
-        SNORE,
-        //% block="Doo"
-        DOO,
-        //% block="Eh?"
-        QUERY,
-        //% block="Uh-oh"
-        UHOH,
-        //% block="Moan"
-        MOAN,
-        //% block="Duh!"
-        DUH,
-        //% block="Waah"
-        WAAH,
-        //% block="Growl"
-        GROWL
-    }
-
     enum PartUse {
         UNUSED = 0,
         PLAYED = 1,
@@ -319,7 +320,8 @@ namespace Vocalise {
 
 
     //% block="emit $utterance at pitch $pitch with strength $strength for $duration ms"
-    //% inlineInputMode=inline   
+    //% inlineInputMode=inline  
+    //% advanced=true 
     //% pitch.min=100 pitch.max=800 pitch.defl=300
     //% strength.min=0 strength.max=255 strength.defl=180
     //% duration.min=50 duration.max=9999 duration.defl=1000
@@ -357,7 +359,7 @@ namespace Vocalise {
     //% repeat.min=1 repeat.max=100 repeat.defl=5
     //% strength.min=0 strength.max=255 strength.defl=250
     //% duration.min=1 duration.max= 100 duration.defl=3000
-    export function grumble(repeat: number=5, strength: number=250, duration: number=3000) {
+    export function grumble(repeat: number = 5, strength: number = 250, duration: number = 3000) {
         quiet = false
         ave = duration / repeat
         basic.showIcon(IconNames.Sad)
@@ -377,7 +379,7 @@ namespace Vocalise {
     //% repeat.min=1 repeat.max=100 repeat.defl=12
     //% strength.min=0 strength.max=255 strength.defl=200
     //% duration.min=1 duration.max= 100 duration.defl=4000
-    export function giggle(repeat: number=12, strength: number=200, duration: number=4000) {
+    export function giggle(repeat: number = 12, strength: number = 200, duration: number = 4000) {
         quiet = false
         ave = duration / repeat
         pitch = randint(500, 700)
@@ -394,7 +396,7 @@ namespace Vocalise {
     //% repeat.min=1 repeat.max=100 repeat.defl=8
     //% strength.min=0 strength.max=255 strength.defl=180
     //% duration.min=1 duration.max= 100 duration.defl=2500
-    export function whistle(repeat: number=8, strength: number=180, duration: number=2500) {
+    export function whistle(repeat: number = 8, strength: number = 180, duration: number = 2500) {
         quiet = false
         ave = duration / repeat
         for (let index = 0; index < repeat; index++) {
@@ -409,7 +411,7 @@ namespace Vocalise {
     //% repeat.min=1 repeat.max=100 repeat.defl=8
     //% strength.min=0 strength.max=255 strength.defl=150
     //% duration.min=1 duration.max= 100 duration.defl=5000
-    export function snore(repeat: number=8, strength: number=150, duration: number=5000) {
+    export function snore(repeat: number = 8, strength: number = 150, duration: number = 5000) {
         quiet = false
         ave = duration / repeat
         for (let index = 0; index < repeat; index++) {
@@ -426,7 +428,7 @@ namespace Vocalise {
     //% repeat.min=1 repeat.max=100 repeat.defl=10
     //% strength.min=0 strength.max=255 strength.defl=100
     //% duration.min=1 duration.max= 100 duration.defl=4000
-    export function whimper(repeat: number=10, strength: number=100, duration: number=4000) {
+    export function whimper(repeat: number = 10, strength: number = 100, duration: number = 4000) {
         if (quiet) {
             quiet = false
             ave = duration / repeat
@@ -442,7 +444,7 @@ namespace Vocalise {
     //% repeat.min=1 repeat.max=100 repeat.defl=8
     //% strength.min=0 strength.max=255 strength.defl=200
     //% duration.min=1 duration.max= 100 duration.defl=3000
-    export function cry(repeat: number=8, strength: number=200, duration: number=3000) {
+    export function cry(repeat: number = 8, strength: number = 200, duration: number = 3000) {
         if (quiet) {
             quiet = false
             ave = duration / repeat
@@ -464,7 +466,7 @@ namespace Vocalise {
     //% repeat.min=1 repeat.max=100 repeat.defl=5
     //% strength.min=0 strength.max=255 strength.defl=250
     //% duration.min=1 duration.max= 100 duration.defl=2500
-    export function shout(repeat: number=5, strength: number=250, duration: number=2500) {
+    export function shout(repeat: number = 5, strength: number = 250, duration: number = 2500) {
         if (quiet) {
             quiet = false
             ave = duration / repeat
@@ -478,53 +480,36 @@ namespace Vocalise {
     }
 }
 
-input.onButtonPressed(Button.A, function () {
-    if (quiet) {
-        Vocalise.whistle(15, 200, 3000)
-    }
-})
-
-
-input.onButtonPressed(Button.B, function () {
-    if (quiet) {
-        Vocalise.hum(10, 180, 3000)
-    }
-})
-
-input.onPinPressed(TouchPin.P1, function () {
-    if (quiet) {
-        Vocalise.grumble(10, 200, 10000);
-    }
-})
-
-input.onPinPressed(TouchPin.P2, function () {
-    if (quiet) {
-        Vocalise.snore(10, 150, 10000)
-    }
-})
-
-input.onGesture(Gesture.Shake, function () {
-    if (quiet) {
-        Vocalise.giggle(7, 250, 800);
-    }
-})
-
-input.onGesture(Gesture.ScreenDown, function () {
-    if (quiet) {
-        Vocalise.cry(10, 100, 10000);
-    }
-})
-
-input.onLogoEvent(TouchButtonEvent.Pressed, function () {
-    if (quiet) {
-        Vocalise.shout(10, 200, 5000);
-    }
-})
-
 let quiet = true
 let span = 0
 let pitch = 0
 let ave = 0
 music.setBuiltInSpeakerEnabled(false)
-pins.touchSetMode(TouchTarget.P1, TouchTargetMode.Capacitive)
-pins.touchSetMode(TouchTarget.P2, TouchTargetMode.Capacitive)
+basic.forever(function () {
+    basic.showNumber(0)
+    Vocalise.shout()
+    basic.pause(1000)
+    basic.showNumber(1)
+    Vocalise.cry()
+    basic.pause(1000)
+    basic.showNumber(2)
+    Vocalise.whimper()
+    basic.pause(1000)
+    basic.showNumber(3)
+    Vocalise.snore()
+    basic.pause(1000)
+    basic.showNumber(4)
+    Vocalise.whistle()
+    basic.pause(1000)
+    basic.showNumber(5)
+    Vocalise.giggle()
+    basic.pause(1000)
+    basic.showNumber(6)
+    Vocalise.grumble()
+    basic.pause(1000)
+    basic.showNumber(7)
+    Vocalise.hum()
+    basic.pause(1000)
+    basic.showNumber(7)
+})
+
