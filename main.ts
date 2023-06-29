@@ -331,7 +331,7 @@ namespace Vocalise {
     //% repeat.min=1 repeat.max=100 repeat.defl=10
     //% strength.min=0 strength.max=255 strength.defl=180
     //% duration.min=1 duration.max= 100 duration.defl=2000
-    export function hum(repeat: number, strength: number, duration: number) {
+    export function hum(repeat: number = 10, strength: number = 180, duration: number = 2000) {
         quiet = false
         ave = duration / repeat
         pitch = randint(200, 350)
@@ -354,10 +354,10 @@ namespace Vocalise {
     }
 
     //% block="grumble || $repeat times with strength $strength over $duration ms"
-    //% repeat.min=1 repeat.max=100 repeat.defl=10
-    //% strength.min=0 strength.max=255 strength.defl=180
-    //% duration.min=1 duration.max= 100 duration.defl=2000
-    export function grumble(repeat: number, strength: number, duration: number) {
+    //% repeat.min=1 repeat.max=100 repeat.defl=5
+    //% strength.min=0 strength.max=255 strength.defl=250
+    //% duration.min=1 duration.max= 100 duration.defl=3000
+    export function grumble(repeat: number=5, strength: number=250, duration: number=3000) {
         quiet = false
         ave = duration / repeat
         basic.showIcon(IconNames.Sad)
@@ -374,13 +374,13 @@ namespace Vocalise {
     }
 
     //% block="giggle || $repeat times with strength $strength over $duration ms"
-    //% repeat.min=1 repeat.max=100 repeat.defl=10
-    //% strength.min=0 strength.max=255 strength.defl=180
-    //% duration.min=1 duration.max= 100 duration.defl=2000
-    export function giggle(repeat: number, strength: number, duration: number) {
+    //% repeat.min=1 repeat.max=100 repeat.defl=12
+    //% strength.min=0 strength.max=255 strength.defl=200
+    //% duration.min=1 duration.max= 100 duration.defl=4000
+    export function giggle(repeat: number=12, strength: number=200, duration: number=4000) {
         quiet = false
         ave = duration / repeat
-        pitch = randint(400, 600)
+        pitch = randint(500, 700)
         for (let index = 0; index < repeat; index++) {
             span = randint(0.4 * ave, 1.8 * ave)
             emit(VoxType.LAUGH, pitch, strength, span)
@@ -391,10 +391,10 @@ namespace Vocalise {
     }
 
     //% block="whistle || $repeat times with strength $strength over $duration ms"
-    //% repeat.min=1 repeat.max=100 repeat.defl=10
+    //% repeat.min=1 repeat.max=100 repeat.defl=8
     //% strength.min=0 strength.max=255 strength.defl=180
-    //% duration.min=1 duration.max= 100 duration.defl=2000
-    export function whistle(repeat: number, strength: number, duration: number) {
+    //% duration.min=1 duration.max= 100 duration.defl=2500
+    export function whistle(repeat: number=8, strength: number=180, duration: number=2500) {
         quiet = false
         ave = duration / repeat
         for (let index = 0; index < repeat; index++) {
@@ -406,10 +406,10 @@ namespace Vocalise {
     }
 
     //% block="snore || $repeat times with strength $strength over $duration ms"
-    //% repeat.min=1 repeat.max=100 repeat.defl=10
-    //% strength.min=0 strength.max=255 strength.defl=180
-    //% duration.min=1 duration.max= 100 duration.defl=2000
-    export function snore(repeat: number, strength: number, duration: number) {
+    //% repeat.min=1 repeat.max=100 repeat.defl=8
+    //% strength.min=0 strength.max=255 strength.defl=150
+    //% duration.min=1 duration.max= 100 duration.defl=5000
+    export function snore(repeat: number=8, strength: number=150, duration: number=5000) {
         quiet = false
         ave = duration / repeat
         for (let index = 0; index < repeat; index++) {
@@ -424,9 +424,9 @@ namespace Vocalise {
 
     //% block="whimper || $repeat times with strength $strength over $duration ms"
     //% repeat.min=1 repeat.max=100 repeat.defl=10
-    //% strength.min=0 strength.max=255 strength.defl=180
-    //% duration.min=1 duration.max= 100 duration.defl=2000
-    export function whimper(repeat: number, strength: number, duration: number) {
+    //% strength.min=0 strength.max=255 strength.defl=100
+    //% duration.min=1 duration.max= 100 duration.defl=4000
+    export function whimper(repeat: number=10, strength: number=100, duration: number=4000) {
         if (quiet) {
             quiet = false
             ave = duration / repeat
@@ -439,10 +439,10 @@ namespace Vocalise {
     }
 
     //% block="cry || $repeat times with strength $strength over $duration ms"
-    //% repeat.min=1 repeat.max=100 repeat.defl=10
-    //% strength.min=0 strength.max=255 strength.defl=180
-    //% duration.min=1 duration.max= 100 duration.defl=2000
-    export function cry(repeat: number, strength: number, duration: number) {
+    //% repeat.min=1 repeat.max=100 repeat.defl=8
+    //% strength.min=0 strength.max=255 strength.defl=200
+    //% duration.min=1 duration.max= 100 duration.defl=3000
+    export function cry(repeat: number=8, strength: number=200, duration: number=3000) {
         if (quiet) {
             quiet = false
             ave = duration / repeat
@@ -461,10 +461,10 @@ namespace Vocalise {
 
     //% block="shout || $repeat times with strength $strength over $duration ms"
     //% expandableArgumentMode="toggle"
-    //% repeat.min=1 repeat.max=100 repeat.defl=10
-    //% strength.min=0 strength.max=255 strength.defl=180
-    //% duration.min=1 duration.max= 100 duration.defl=2000
-    export function shout(repeat: number, strength: number, duration: number) {
+    //% repeat.min=1 repeat.max=100 repeat.defl=5
+    //% strength.min=0 strength.max=255 strength.defl=250
+    //% duration.min=1 duration.max= 100 duration.defl=2500
+    export function shout(repeat: number=5, strength: number=250, duration: number=2500) {
         if (quiet) {
             quiet = false
             ave = duration / repeat
