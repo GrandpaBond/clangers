@@ -1,4 +1,4 @@
-/* VOCALISE
+/* UTTERANCES
 While the built-in facilities for creating sound-effects are impressively flexible,
 they are insufficient to properly express moods and emotions.
 For the Emote extension, we would like to create more complex sounds, that have 
@@ -23,7 +23,7 @@ utterance to "tune" its pitch and volume as we require.
 
 */
 
-// an initial array of 10 built-in utterances will be accesssed by enumerated index
+// we will provide an array of 10 built-in utterances, accesssed by enumerated index
 enum VoxType {
     //% block="Tweet"
     TWEET,
@@ -48,7 +48,7 @@ enum VoxType {
 }
 
 
-//% color=33 weight=100 icon="\uf600 block="Utter"
+//% color=33 weight=100 icon="\uf06a" block="Utter"
 namespace Vocalise {
     enum PartUse {
         UNUSED = 0,
@@ -63,7 +63,7 @@ namespace Vocalise {
     }
 
     // Code this defensively, just in case SoundExpression field-locations should change in future.
-    // (We presume their values will always be 0000 to 9999)
+    // (We presume their values will never exceed 4 digits)
     const startVolPos = 1
     const startFreqPos = 5
     const durationPos = 9
@@ -108,6 +108,8 @@ namespace Vocalise {
         }
 
         // methods...  
+
+        // TODO: CHECK VOLUME RATIO CALCS!
         // Sets up Part A, implicitly setting start values for Part B
         usePartA(freq0: number, vol0: number, wave: WaveShape, fx: SoundExpressionEffect, shape: InterpolationCurve, freq1: number, vol1: number, ms1: number) {
             this.freqRatio0 = freq0;
@@ -300,11 +302,11 @@ namespace Vocalise {
 
     /*
     WAAH         100%  25
-    SAW NONE CUR 140% 255 20%
+    SAW NONE CUR 140% 220 20%
     SAW NONE LIN 110%  50 70%
     SAW NONE LIN  30%  10 10%
     */
-    utterances[VoxType.WAAH].usePartA(1.00, 25, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.40, 255, 0.20)
+    utterances[VoxType.WAAH].usePartA(1.00, 25, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.40, 220, 0.20)
     utterances[VoxType.WAAH].usePartB(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.10, 50, 0.70)
     utterances[VoxType.WAAH].usePartC(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.3, 10, 0.10);
 
@@ -379,7 +381,7 @@ namespace Vocalise {
     //% repeat.min=1 repeat.max=100 repeat.defl=12
     //% strength.min=0 strength.max=255 strength.defl=200
     //% duration.min=1 duration.max= 100 duration.defl=4000
-    export function giggle(repeat: number = 12, strength: number = 200, duration: number = 4000) {
+    export function giggle(repeat: number = 12, strength: number = 200, duration: number = 2000) {
         quiet = false
         ave = duration / repeat
         pitch = randint(500, 700)
@@ -444,18 +446,18 @@ namespace Vocalise {
     //% repeat.min=1 repeat.max=100 repeat.defl=8
     //% strength.min=0 strength.max=255 strength.defl=200
     //% duration.min=1 duration.max= 100 duration.defl=3000
-    export function cry(repeat: number = 8, strength: number = 200, duration: number = 3000) {
+    export function cry(repeat: number = 8, strength: number = 200, duration: number = 3500) {
         if (quiet) {
             quiet = false
             ave = duration / repeat
             for (let index = 0; index < repeat; index++) {
-                span = randint(0.4 * ave, 1.8 * ave)
+                span = randint(0.6 * ave, 1.5 * ave)
                 if (span > 0.9 * ave) {
                     emit(VoxType.MOAN, randint(200, 350), 1.5 * strength, 0.5 * span)
                 } else {
-                    emit(VoxType.WAAH, randint(250, 400), 0.1 * strength, 1.3 * span)
+                    emit(VoxType.WAAH, randint(250, 400), 0.05 * strength, 1.3 * span)
                 }
-                basic.pause(300)
+                basic.pause(200)
             }
             quiet = true
         }
@@ -471,8 +473,8 @@ namespace Vocalise {
             quiet = false
             ave = duration / repeat
             for (let index = 0; index < repeat; index++) {
-                emit(VoxType.GROWL, randint(250, 400), strength, randint(0.4 * ave, 1.8 * ave))
-                basic.pause(200)
+                emit(VoxType.GROWL, randint(320, 400), strength, randint(0.8 * ave, 1.2 * ave))
+                basic.pause(300)
             }
             quiet = true
         }
@@ -480,36 +482,39 @@ namespace Vocalise {
     }
 }
 
+function doSound(choice: number) {
+    switch (choice) {
+        case 1: Vocalise.shout();
+            break;
+        case 2: Vocalise.cry();
+            break;
+        case 3: Vocalise.whimper();
+            break;
+        case 4: Vocalise.snore();
+            break;
+        case 5: Vocalise.whistle();
+            break;
+        case 6: Vocalise.giggle();
+            break;
+        case 7: Vocalise.grumble();
+            break;
+        case 8: Vocalise.hum()
+    }
+    basic.pause(1000)
+}
+
 let quiet = true
 let span = 0
 let pitch = 0
 let ave = 0
+let choice = 7
 music.setBuiltInSpeakerEnabled(false)
-basic.forever(function () {
-    basic.showNumber(0)
-    Vocalise.shout()
-    basic.pause(1000)
-    basic.showNumber(1)
-    Vocalise.cry()
-    basic.pause(1000)
-    basic.showNumber(2)
-    Vocalise.whimper()
-    basic.pause(1000)
-    basic.showNumber(3)
-    Vocalise.snore()
-    basic.pause(1000)
-    basic.showNumber(4)
-    Vocalise.whistle()
-    basic.pause(1000)
-    basic.showNumber(5)
-    Vocalise.giggle()
-    basic.pause(1000)
-    basic.showNumber(6)
-    Vocalise.grumble()
-    basic.pause(1000)
-    basic.showNumber(7)
-    Vocalise.hum()
-    basic.pause(1000)
-    basic.showNumber(7)
-})
 
+input.onButtonPressed(Button.A, function () {
+    choice++;
+    choice = choice % 8;
+    basic.showNumber(choice+1);
+})
+input.onButtonPressed(Button.B, function () {
+    doSound(choice + 1);
+})
