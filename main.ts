@@ -48,7 +48,7 @@ enum VoxType {
 }
 
 
-//% color=33 weight=100 icon="\uf06a" block="Utter"
+//% color=33 weight=100 icon="\uf06a" block="Vocalise"
 namespace Vocalise {
     enum PartUse {
         UNUSED = 0,
@@ -98,7 +98,6 @@ namespace Vocalise {
         timeRatio2: number;
         timeRatio3: number;
 
-        // initially create all sounds arbitrarily with freq=333Hz, vol=666, ms=999 (333ms  each)
         constructor(me: VoxType) {
             this.myType = me;
             // until otherwise instructed...
@@ -223,102 +222,102 @@ namespace Vocalise {
 
     /*
        Short-hand definitions are laid out as follows:
-       <name>             <%Freq,vol>          at start of PartA
-       <PartA wave-style> <%Freq,vol,%time>    at end of PartA & start of PartB
-       <PartB wave-style> <%Freq,vol,%time>    at end of PartB & start of PartC
-       <PartC wave-style> <%Freq,vol,%time>    at end of PartC
+       <name>             <%Freq,%vol>          at start of PartA
+       <PartA wave-style> <%Freq,%vol,%time>    at end of PartA & start of PartB
+       <PartB wave-style> <%Freq,%vol,%time>    at end of PartB & start of PartC
+       <PartC wave-style> <%Freq,%vol,%time>    at end of PartC
        */
     /*
-    TWEET         80% 120
-    SIN NONE LOG 100% 200 90%
+    TWEET         80% 45%
+    SIN NONE LOG 100% 80% 90%
     SILENT                10%
     */
-    utterances[VoxType.TWEET].usePartA(0.8, 120, WaveShape.Sine, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 200, 0.9);
+    utterances[VoxType.TWEET].usePartA(0.8, 0.45, WaveShape.Sine, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 0.8, 0.9);
     utterances[VoxType.TWEET].silentPartB(0.0, 0, 0.1)
 
     /*
-    LAUGH         70% 100
-    SAW NONE LOG 100% 255 90%
-    SQU NONE LIN  70% 180 10%
+    LAUGH         70%  40%
+    SAW NONE LOG 100% 100% 90%
+    SQU NONE LIN  70%  75% 10%
     */
-    utterances[VoxType.LAUGH].usePartA(0.70, 100, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 255, 0.9)
-    utterances[VoxType.LAUGH].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.7, 180, 0.1);
+    utterances[VoxType.LAUGH].usePartA(0.70, 0.4, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 1.0, 0.9)
+    utterances[VoxType.LAUGH].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.7, 0.75, 0.1);
 
     /*
-    SNORE       3508  27
-    NOI VIB LIN  715 255 50%
-    NOI VIB LIN 5008  0 50%
+    SNORE       3508  10%
+    NOI VIB LIN  715 100% 50%
+    NOI VIB LIN 5008   0% 50%
     NOTE: The noise-generator is highly sensitive to the chosen frequency-trajectory, and these strange values have been experimentally derived.
-    By always invoking Snore.performUsing() with freq=1, these literal frequencies will get used verbatim!
+    By always invoking Snore.performUsing() with the scaling-factor freq=1, these literal frequencies will get used verbatim!
     */
-    utterances[VoxType.SNORE].usePartA(3508, 27, WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear, 715, 255, 0.50)
+    utterances[VoxType.SNORE].usePartA(3508, 0.1, WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear, 715, 1.0, 0.50)
     utterances[VoxType.SNORE].usePartB(WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear, 5008, 0, 0.50);
 
     /*
-    DOO          300% 200
-    SAW NONE LOG 100% 220  5%
-    SQU NONE LIN 100% 180 95%
+    DOO          300% 80%
+    SAW NONE LOG 100% 90%  5%
+    SQU NONE LIN 100% 70% 95%
     */
-    utterances[VoxType.DOO].usePartA(3.00, 200, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 220, 0.05)
-    utterances[VoxType.DOO].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 180, 0.95);
+    utterances[VoxType.DOO].usePartA(3.00, 0.8, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 0.9, 0.05)
+    utterances[VoxType.DOO].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 0.7, 0.95);
 
     /*
-    QUERY        110%  50
-    SQU NONE LIN 100% 255 20%
-    SQU NONE CUR 150%  50 80%
+    QUERY        110%  20%
+    SQU NONE LIN 100% 100% 20%
+    SQU NONE CUR 150%  20% 80%
     */
-    utterances[VoxType.QUERY].usePartA(1.10, 50, WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 255, 0.2)
-    utterances[VoxType.QUERY].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.50, 50, 0.8);
+    utterances[VoxType.QUERY].usePartA(1.10, 0.2, WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 1.0, 0.2)
+    utterances[VoxType.QUERY].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.50, 0.2, 0.8);
 
     /*
-    UHOH         110% 100
-    SAW NONE LOG 140% 255 25%
-    SILENT       110% 255 20%
-    SQU NONE LIN 100% 180 55%
+    UHOH         110%  40%
+    SAW NONE LOG 140% 100% 25%
+    SILENT       110% 100% 20%
+    SQU NONE LIN 100%  75% 55%
     */
-    utterances[VoxType.UHOH].usePartA(1.10, 100, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.40, 255, 0.25)
-    utterances[VoxType.UHOH].silentPartB(1.10, 255, 0.2)
-    utterances[VoxType.UHOH].usePartC(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 180, 0.55);
+    utterances[VoxType.UHOH].usePartA(1.10, 0.4, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.40, 1.0, 0.25)
+    utterances[VoxType.UHOH].silentPartB(1.10, 1.0, 0.2)
+    utterances[VoxType.UHOH].usePartC(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 0.75, 0.55);
 
     /*
-    MOAN         130% 150
-    TRI NONE CUR 100% 250 30%
-    TRI NONE CUR  95% 200 60%
-    TRI NONE LIN 115% 133 10%
+    MOAN         130%  60%
+    TRI NONE CUR 100% 100% 30%
+    TRI NONE CUR  95%  80% 60%
+    TRI NONE LIN 115%  55% 10%
     */
-    utterances[VoxType.MOAN].usePartA(1.30, 150, WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.00, 250, 0.3)
-    utterances[VoxType.MOAN].usePartB(WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve, 0.95, 200, 0.6)
-    utterances[VoxType.MOAN].usePartC(WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.15, 133, 0.1);
+    utterances[VoxType.MOAN].usePartA(1.30, 0.6, WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.00, 1.0, 0.3)
+    utterances[VoxType.MOAN].usePartB(WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve, 0.95, 0.8, 0.6)
+    utterances[VoxType.MOAN].usePartC(WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.15, 0.55, 0.1);
 
     /*
-    DUH          100% 150
-    SQU NONE LIN  95% 200 10%
-    SQU NONE LIN 110% 250 30%
-    SQU NONE LIN  66%  90 60%
+    DUH          100%  60%
+    SQU NONE LIN  95%  80% 10%
+    SQU NONE LIN 110% 100% 30%
+    SQU NONE LIN  66%  40% 60%
     */
-    utterances[VoxType.DUH].usePartA(1.00, 150, WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.95, 200, 0.1)
-    utterances[VoxType.DUH].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.10, 250, 0.3)
-    utterances[VoxType.DUH].usePartC(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.66, 90, 0.6);
+    utterances[VoxType.DUH].usePartA(1.00, 0.6, WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.95, 0.8, 0.1)
+    utterances[VoxType.DUH].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.10, 1.0, 0.3)
+    utterances[VoxType.DUH].usePartC(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.66, 0.4, 0.6);
 
     /*
-    WAAH         100%  25
-    SAW NONE CUR 140% 220 20%
-    SAW NONE LIN 110%  50 70%
-    SAW NONE LIN  30%  10 10%
+    WAAH         100% 10%
+    SAW NONE CUR 140% 90% 20%
+    SAW NONE LIN 110% 20% 70%
+    SAW NONE LIN  30%  5% 10%
     */
-    utterances[VoxType.WAAH].usePartA(1.00, 25, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.40, 220, 0.20)
-    utterances[VoxType.WAAH].usePartB(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.10, 50, 0.70)
-    utterances[VoxType.WAAH].usePartC(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.3, 10, 0.10);
+    utterances[VoxType.WAAH].usePartA(1.00, 0.1, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.40, 0.9, 0.20)
+    utterances[VoxType.WAAH].usePartB(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.10, 0.2, 0.70)
+    utterances[VoxType.WAAH].usePartC(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.3, 0.05, 0.10);
 
     /*
-    GROWL         30% 120
-    SAW NONE LOG 100% 200 15%
-    SAW NONE LIN  90% 255 60%
-    SAW NONE LIN  30% 180 15%
+    GROWL         30%  50%
+    SAW NONE LOG 100%  80% 15%
+    SAW NONE LIN  90% 100% 60%
+    SAW NONE LIN  30%  75% 15%
     */
-    utterances[VoxType.GROWL].usePartA(0.30, 120, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 200, 0.15)
-    utterances[VoxType.GROWL].usePartB(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.90, 255, 0.60)
-    utterances[VoxType.GROWL].usePartC(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.30, 180, 0.15);
+    utterances[VoxType.GROWL].usePartA(0.30, 0.5, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 0.8, 0.15)
+    utterances[VoxType.GROWL].usePartB(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.90, 1.0, 0.60)
+    utterances[VoxType.GROWL].usePartC(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.30, 0.75, 0.15);
 
 
     //% block="emit $utterance at pitch $pitch with strength $strength for $duration ms"
@@ -511,8 +510,7 @@ let choice = 7
 music.setBuiltInSpeakerEnabled(false)
 
 input.onButtonPressed(Button.A, function () {
-    choice++;
-    choice = choice % 8;
+    choice = (++choice) % 8;
     basic.showNumber(choice+1);
 })
 input.onButtonPressed(Button.B, function () {
