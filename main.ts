@@ -1,10 +1,11 @@
-/* UTTERANCES
+/* FlexFX
 While the built-in facilities for creating sound-effects are impressively flexible,
-they are insufficient to properly express moods and emotions.
-For the Emote extension, we would like to create more complex sounds, that have 
-inflections in both pitch and volume.  We call these sound-patterns "utterances".
+they are insufficient for the Emote extension to properly express moods and emotions.
+We would like to create more complex sounds, that have inflections in both pitch and volume.
 Examples include a laugh, a moan or an "Uh-oh" that indicates a problem.
-These can involve up to three separate sound parts that will then be played consecutively
+
+To achieve this we have defined a flexible sound-effect class called a "FlexFX".
+It can involve up to three separate sound parts that will then be played consecutively
 to give a smoothly varying result when spliced together.
 
 Internally, sound effects are encoded as a string of 72 digits, broken into several fields
@@ -12,19 +13,19 @@ Internally, sound effects are encoded as a string of 72 digits, broken into seve
 The function createSoundEffect() takes eight arguments and works hard to encode them into their
 respective fields.
 
-We would like to be able to dynamically vary the overall pitch or volume of any given utterance.
+We would like to be able to dynamically vary the overall pitch or volume of any given FlexFX.
 Conventionally, that would require reconstructing all three sound effects from scratch for each 
 performance (or saving a wide range of 3*72-character strings we prepared earlier).
 Instead we choose to selectively overwrite certain 4-digit fields within our three-part 
-utterance to "tune" its pitch and volume as we require.
+FlexFX to "tune" its pitch and volume as we require.
 
 *** It is acknowledged that this is a DANGEROUS PRACTICE that relies on the internal
 *** representation not changing, but it is believed that the performance gains justify it!
 
 */
 
-// we will provide an array of 10 built-in utterances, accesssed by enumerated index
-enum VoxType {
+// for Emote, we provide an array of 10 FlexFXs, accesssed by these enumerated index:
+enum MoodSound {
     //% block="Tweet"
     TWEET,
     //% block="Laugh"
@@ -45,7 +46,7 @@ enum VoxType {
     WAAH,
     //% block="Growl"
     GROWL
-}
+} 
 
 
 //% color=33 weight=100 icon="\uf06a" block="Vocalise"
@@ -72,9 +73,9 @@ namespace Vocalise {
 
 
     //====================================================================
-    class Utterance {
+    class FlexFX {
         // properties
-        myType: VoxType;
+        myType: MoodSound;
         partA: soundExpression.Sound;
         partB: soundExpression.Sound;
         partC: soundExpression.Sound;
@@ -82,7 +83,7 @@ namespace Vocalise {
         useOfB: PartUse;
         useOfC: PartUse;
         // Each part has a start and an end [frequency,volume], but endA===startB 
-        // and endB===startC, so an utterance moves through four [frequency,volume] points
+        // and endB===startC, so an FlexFX moves through four [frequency,volume] points
         // These are set up to be fixed ratios of the performance [frequency,volume]
         // 
         freqRatio0: number;
@@ -98,7 +99,7 @@ namespace Vocalise {
         timeRatio2: number;
         timeRatio3: number;
 
-        constructor(me: VoxType) {
+        constructor(me: MoodSound) {
             this.myType = me;
             // until otherwise instructed...
             this.useOfA = PartUse.UNUSED;
@@ -108,7 +109,6 @@ namespace Vocalise {
 
         // methods...  
 
-        // TODO: CHECK VOLUME RATIO CALCS!
         // Sets up Part A, implicitly setting start values for Part B
         usePartA(freq0: number, vol0: number, wave: WaveShape, fx: SoundExpressionEffect, shape: InterpolationCurve, freq1: number, vol1: number, ms1: number) {
             this.freqRatio0 = freq0;
@@ -206,18 +206,18 @@ namespace Vocalise {
     }
 
 
-    // now create a selection of standard utterances
-    const utterances = [
-        new Utterance(VoxType.TWEET),
-        new Utterance(VoxType.LAUGH),
-        new Utterance(VoxType.SNORE),
-        new Utterance(VoxType.DOO),
-        new Utterance(VoxType.QUERY),
-        new Utterance(VoxType.UHOH),
-        new Utterance(VoxType.MOAN),
-        new Utterance(VoxType.DUH),
-        new Utterance(VoxType.WAAH),
-        new Utterance(VoxType.GROWL)
+    // now create our collection of built-in FlexFX objects
+    const FxList = [
+        new FlexFX(MoodSound.TWEET),
+        new FlexFX(MoodSound.LAUGH),
+        new FlexFX(MoodSound.SNORE),
+        new FlexFX(MoodSound.DOO),
+        new FlexFX(MoodSound.QUERY),
+        new FlexFX(MoodSound.UHOH),
+        new FlexFX(MoodSound.MOAN),
+        new FlexFX(MoodSound.DUH),
+        new FlexFX(MoodSound.WAAH),
+        new FlexFX(MoodSound.GROWL)
     ]
 
     /*
@@ -232,16 +232,16 @@ namespace Vocalise {
     SIN NONE LOG 100% 80% 90%
     SILENT                10%
     */
-    utterances[VoxType.TWEET].usePartA(0.8, 0.45, WaveShape.Sine, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 0.8, 0.9);
-    utterances[VoxType.TWEET].silentPartB(0.0, 0, 0.1)
+    FxList[MoodSound.TWEET].usePartA(0.8, 0.45, WaveShape.Sine, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 0.8, 0.9);
+    FxList[MoodSound.TWEET].silentPartB(0.0, 0, 0.1)
 
     /*
     LAUGH         70%  40%
     SAW NONE LOG 100% 100% 90%
     SQU NONE LIN  70%  75% 10%
     */
-    utterances[VoxType.LAUGH].usePartA(0.70, 0.4, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 1.0, 0.9)
-    utterances[VoxType.LAUGH].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.7, 0.75, 0.1);
+    FxList[MoodSound.LAUGH].usePartA(0.70, 0.4, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 1.0, 0.9)
+    FxList[MoodSound.LAUGH].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.7, 0.75, 0.1);
 
     /*
     SNORE       3508  10%
@@ -250,24 +250,24 @@ namespace Vocalise {
     NOTE: The noise-generator is highly sensitive to the chosen frequency-trajectory, and these strange values have been experimentally derived.
     By always invoking Snore.performUsing() with the scaling-factor freq=1, these literal frequencies will get used verbatim!
     */
-    utterances[VoxType.SNORE].usePartA(3508, 0.1, WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear, 715, 1.0, 0.50)
-    utterances[VoxType.SNORE].usePartB(WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear, 5008, 0, 0.50);
+    FxList[MoodSound.SNORE].usePartA(3508, 0.1, WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear, 715, 1.0, 0.50)
+    FxList[MoodSound.SNORE].usePartB(WaveShape.Noise, SoundExpressionEffect.Vibrato, InterpolationCurve.Linear, 5008, 0, 0.50);
 
     /*
     DOO          300% 80%
     SAW NONE LOG 100% 90%  5%
     SQU NONE LIN 100% 70% 95%
     */
-    utterances[VoxType.DOO].usePartA(3.00, 0.8, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 0.9, 0.05)
-    utterances[VoxType.DOO].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 0.7, 0.95);
+    FxList[MoodSound.DOO].usePartA(3.00, 0.8, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 0.9, 0.05)
+    FxList[MoodSound.DOO].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 0.7, 0.95);
 
     /*
     QUERY        110%  20%
     SQU NONE LIN 100% 100% 20%
     SQU NONE CUR 150%  20% 80%
     */
-    utterances[VoxType.QUERY].usePartA(1.10, 0.2, WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 1.0, 0.2)
-    utterances[VoxType.QUERY].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.50, 0.2, 0.8);
+    FxList[MoodSound.QUERY].usePartA(1.10, 0.2, WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 1.0, 0.2)
+    FxList[MoodSound.QUERY].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.50, 0.2, 0.8);
 
     /*
     UHOH         110%  40%
@@ -275,9 +275,9 @@ namespace Vocalise {
     SILENT       110% 100% 20%
     SQU NONE LIN 100%  75% 55%
     */
-    utterances[VoxType.UHOH].usePartA(1.10, 0.4, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.40, 1.0, 0.25)
-    utterances[VoxType.UHOH].silentPartB(1.10, 1.0, 0.2)
-    utterances[VoxType.UHOH].usePartC(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 0.75, 0.55);
+    FxList[MoodSound.UHOH].usePartA(1.10, 0.4, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.40, 1.0, 0.25)
+    FxList[MoodSound.UHOH].silentPartB(1.10, 1.0, 0.2)
+    FxList[MoodSound.UHOH].usePartC(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.00, 0.75, 0.55);
 
     /*
     MOAN         130%  60%
@@ -285,9 +285,9 @@ namespace Vocalise {
     TRI NONE CUR  95%  80% 60%
     TRI NONE LIN 115%  55% 10%
     */
-    utterances[VoxType.MOAN].usePartA(1.30, 0.6, WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.00, 1.0, 0.3)
-    utterances[VoxType.MOAN].usePartB(WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve, 0.95, 0.8, 0.6)
-    utterances[VoxType.MOAN].usePartC(WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.15, 0.55, 0.1);
+    FxList[MoodSound.MOAN].usePartA(1.30, 0.6, WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.00, 1.0, 0.3)
+    FxList[MoodSound.MOAN].usePartB(WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Curve, 0.95, 0.8, 0.6)
+    FxList[MoodSound.MOAN].usePartC(WaveShape.Triangle, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.15, 0.55, 0.1);
 
     /*
     DUH          100%  60%
@@ -295,9 +295,9 @@ namespace Vocalise {
     SQU NONE LIN 110% 100% 30%
     SQU NONE LIN  66%  40% 60%
     */
-    utterances[VoxType.DUH].usePartA(1.00, 0.6, WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.95, 0.8, 0.1)
-    utterances[VoxType.DUH].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.10, 1.0, 0.3)
-    utterances[VoxType.DUH].usePartC(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.66, 0.4, 0.6);
+    FxList[MoodSound.DUH].usePartA(1.00, 0.6, WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.95, 0.8, 0.1)
+    FxList[MoodSound.DUH].usePartB(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.10, 1.0, 0.3)
+    FxList[MoodSound.DUH].usePartC(WaveShape.Square, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.66, 0.4, 0.6);
 
     /*
     WAAH         100% 10%
@@ -305,9 +305,9 @@ namespace Vocalise {
     SAW NONE LIN 110% 20% 70%
     SAW NONE LIN  30%  5% 10%
     */
-    utterances[VoxType.WAAH].usePartA(1.00, 0.1, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.40, 0.9, 0.20)
-    utterances[VoxType.WAAH].usePartB(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.10, 0.2, 0.70)
-    utterances[VoxType.WAAH].usePartC(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.3, 0.05, 0.10);
+    FxList[MoodSound.WAAH].usePartA(1.00, 0.1, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Curve, 1.40, 0.9, 0.20)
+    FxList[MoodSound.WAAH].usePartB(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 1.10, 0.2, 0.70)
+    FxList[MoodSound.WAAH].usePartC(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.3, 0.05, 0.10);
 
     /*
     GROWL         30%  50%
@@ -315,20 +315,22 @@ namespace Vocalise {
     SAW NONE LIN  90% 100% 60%
     SAW NONE LIN  30%  75% 15%
     */
-    utterances[VoxType.GROWL].usePartA(0.30, 0.5, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 0.8, 0.15)
-    utterances[VoxType.GROWL].usePartB(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.90, 1.0, 0.60)
-    utterances[VoxType.GROWL].usePartC(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.30, 0.75, 0.15);
+    FxList[MoodSound.GROWL].usePartA(0.30, 0.5, WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Logarithmic, 1.00, 0.8, 0.15)
+    FxList[MoodSound.GROWL].usePartB(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.90, 1.0, 0.60)
+    FxList[MoodSound.GROWL].usePartC(WaveShape.Sawtooth, SoundExpressionEffect.None, InterpolationCurve.Linear, 0.30, 0.75, 0.15);
 
 
-    //% block="emit $utterance at pitch $pitch with strength $strength for $duration ms"
+    //% block="emit $FlexFX at pitch $pitch with strength $strength for $duration ms"
     //% inlineInputMode=inline  
     //% advanced=true 
     //% pitch.min=100 pitch.max=800 pitch.defl=300
     //% strength.min=0 strength.max=255 strength.defl=180
     //% duration.min=50 duration.max=9999 duration.defl=1000
-    export function emit(utterance: VoxType, pitch: number, strength: number, duration: number) {
-        utterances[utterance].performUsing(pitch, strength, duration);
+    export function emit(FlexFX: MoodSound, pitch: number, strength: number, duration: number) {
+        FxList[FlexFX].performUsing(pitch, strength, duration);
     }
+
+// ******************* SIMPLE RANDOM INVOCATION BLOCKS ******************
 
     //% block="hum || $repeat times with strength $strength over $duration ms"
     //% repeat.min=1 repeat.max=100 repeat.defl=10
@@ -343,12 +345,12 @@ namespace Vocalise {
             span = randint(0.2 * ave, 1.8 * ave)
             if ((span > 0.6 * ave) || (skip)) {
                 // mostly "Dum"...
-                emit(VoxType.DOO, randint(150, 300), strength, span)
+                emit(MoodSound.DOO, randint(150, 300), strength, span)
                 basic.pause(100)
                 skip = false
             } else {
                 // .. with occasional short, higher-pitched "Di"
-                emit(VoxType.DOO, randint(350, 500), strength, 0.25 * ave)
+                emit(MoodSound.DOO, randint(350, 500), strength, 0.25 * ave)
                 basic.pause(50)
                 skip = true
             }
@@ -367,9 +369,9 @@ namespace Vocalise {
         for (let index = 0; index < repeat; index++) {
             span = randint(0.4 * ave, 1.8 * ave)
             if (span > 1.0 * ave) {
-                emit(VoxType.DUH, randint(150, 300), strength, 0.5 * span)
+                emit(MoodSound.DUH, randint(150, 300), strength, 0.5 * span)
             } else {
-                emit(VoxType.UHOH, randint(100, 200), strength, 2 * span)
+                emit(MoodSound.UHOH, randint(100, 200), strength, 2 * span)
             }
             pause(0.5 * span)
         }
@@ -386,7 +388,7 @@ namespace Vocalise {
         pitch = randint(500, 700)
         for (let index = 0; index < repeat; index++) {
             span = randint(0.4 * ave, 1.8 * ave)
-            emit(VoxType.LAUGH, pitch, strength, span)
+            emit(MoodSound.LAUGH, pitch, strength, span)
             pitch = 0.9 * pitch
             basic.pause(100)
         }
@@ -402,7 +404,7 @@ namespace Vocalise {
         ave = duration / repeat
         for (let index = 0; index < repeat; index++) {
             span = randint(0.4 * ave, 1.8 * ave)
-            emit(VoxType.TWEET, randint(600, 1200), strength, span)
+            emit(MoodSound.TWEET, randint(600, 1200), strength, span)
             basic.pause(100)
         }
         quiet = true
@@ -417,9 +419,9 @@ namespace Vocalise {
         ave = duration / repeat
         for (let index = 0; index < repeat; index++) {
             span = randint(0.9 * ave, 1.1 * ave)
-            emit(VoxType.SNORE, 1, 80, 0.3 * span);
+            emit(MoodSound.SNORE, 1, 80, 0.3 * span);
             pause(300);
-            emit(VoxType.SNORE, 1, 150, 0.7 * span);
+            emit(MoodSound.SNORE, 1, 150, 0.7 * span);
             pause(500);
         }
         quiet = true
@@ -434,7 +436,7 @@ namespace Vocalise {
             quiet = false
             ave = duration / repeat
             for (let index = 0; index < repeat; index++) {
-                emit(VoxType.MOAN, randint(250, 400), strength, randint(0.7 * ave, 1.3 * ave))
+                emit(MoodSound.MOAN, randint(250, 400), strength, randint(0.7 * ave, 1.3 * ave))
                 basic.pause(300)
             }
             quiet = true
@@ -452,9 +454,9 @@ namespace Vocalise {
             for (let index = 0; index < repeat; index++) {
                 span = randint(0.6 * ave, 1.5 * ave)
                 if (span > 0.9 * ave) {
-                    emit(VoxType.MOAN, randint(200, 350), 1.5 * strength, 0.5 * span)
+                    emit(MoodSound.MOAN, randint(200, 350), 1.5 * strength, 0.5 * span)
                 } else {
-                    emit(VoxType.WAAH, randint(250, 400), 0.05 * strength, 1.3 * span)
+                    emit(MoodSound.WAAH, randint(250, 400), 0.05 * strength, 1.3 * span)
                 }
                 basic.pause(200)
             }
@@ -472,7 +474,7 @@ namespace Vocalise {
             quiet = false
             ave = duration / repeat
             for (let index = 0; index < repeat; index++) {
-                emit(VoxType.GROWL, randint(320, 400), strength, randint(0.8 * ave, 1.2 * ave))
+                emit(MoodSound.GROWL, randint(320, 400), strength, randint(0.8 * ave, 1.2 * ave))
                 basic.pause(300)
             }
             quiet = true
@@ -480,6 +482,8 @@ namespace Vocalise {
 
     }
 }
+
+// *********** test codes **********
 
 function doSound(choice: number) {
     switch (choice) {
